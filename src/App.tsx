@@ -1,5 +1,3 @@
-import * as Sentry from "@sentry/react";
-
 import { ipcRenderer as ipc } from "electron";
 
 import { platform } from "os";
@@ -20,12 +18,6 @@ const App = (): React.ReactElement => {
     "Waiting for League of Legends Client"
   );
   const [credentials, setCredentials]: any = useState();
-
-  useEffect(() => {
-    Sentry.init({
-      dsn: "https://b0ef34ececf64e1ea0a26f3b082bb71f@o1076901.ingest.sentry.io/6079236",
-    });
-  }, []);
 
   useEffect(() => {
     console.log(`Credentials are`);

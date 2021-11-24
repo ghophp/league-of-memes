@@ -1,11 +1,14 @@
 import { Agent } from "https";
 import { platform } from "os";
 import { app, BrowserWindow, ipcMain as ipc, globalShortcut } from "electron";
-import { modifySystemYaml, deleteUserSession } from "./util";
+import { modifySystemYaml } from "./util";
 import * as path from "path";
 import axios from "axios";
 import RiotConnector from "./util/RiotConnector";
+import express from "express";
+
 app.commandLine.appendSwitch("ignore-certificate-errors", "true");
+
 /**
  * Check if is windows other wise assume is macOS since that is the
  * only other supported OS.
@@ -35,12 +38,12 @@ const instance = axios.create({
   }),
 });
 
+const expressApp = express();
+
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 
 let LCUData: any = null;
-let swaggerJson: any;
-let swaggerEnabled = false;
 
 /**
  * Create electron window.
@@ -116,7 +119,7 @@ function createWindow() {
    * or just send an empty string.
    */
   ipc.on("FEREADY", () => {
-    mainWindow?.webContents.send("BEPRELOAD", swaggerJson ? swaggerJson : "");
+    mainWindow?.webContents.send("BEPRELOAD", "");
   });
 
   /**
@@ -176,8 +179,6 @@ function createWindow() {
    */
   riotconnector.on("disconnect", () => {
     LCUData = null;
-    swaggerEnabled = false;
-
     if (windowLoaded) {
       mainWindow?.webContents.send("LCUDISCONNECT");
     }
@@ -199,6 +200,14 @@ function createWindow() {
 
   ipc.on("process_min", () => {
     mainWindow.minimize();
+  });
+
+  expressApp.get( "/", ( req, res ) => {
+    res.send('Hello World!');
+  } );
+
+  expressApp.listen(9990, () => {
+    console.log(`server started at http://localhost:9990`);
   });
 }
 
