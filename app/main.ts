@@ -1,11 +1,8 @@
-import { Agent } from "https";
 import { platform } from "os";
 import { app, BrowserWindow, ipcMain as ipc, globalShortcut } from "electron";
-import { modifySystemYaml } from "./util";
-import * as path from "path";
-import axios from "axios";
-import RiotConnector from "./util/RiotConnector";
+import RiotConnector, {END_GAME, GAME_START, READY_TO_RUMBLE} from "./util/RiotConnector";
 import express from "express";
+import * as path from "path";
 
 app.commandLine.appendSwitch("ignore-certificate-errors", "true");
 
@@ -27,23 +24,12 @@ const ROOT = `${__dirname}/app`;
 /**
  * New instance of the riot connector.
  */
-const riotconnector = new RiotConnector();
-
-/**
- * Simple axios instance with disabled SSL to allow the self signed cert.
- */
-const instance = axios.create({
-  httpsAgent: new Agent({
-    rejectUnauthorized: false,
-  }),
-});
-
+const riotConnector = new RiotConnector();
 const expressApp = express();
 
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
-
-let LCUData: any = null;
+let currentEvent = null;
 
 /**
  * Create electron window.
@@ -51,8 +37,8 @@ let LCUData: any = null;
 function createWindow() {
   mainWindow = new BrowserWindow({
     center: true,
-    height: 640,
-    minHeight: 640,
+    height: 360,
+    minHeight: 360,
     show: IS_DEV,
     width: 360,
     minWidth: 360,
@@ -95,7 +81,7 @@ function createWindow() {
   mainWindow.webContents.on("did-finish-load", () => {
     windowLoaded = true;
     mainWindow?.show();
-    riotconnector.start();
+    riotConnector.start();
   });
 
   /**
@@ -118,24 +104,8 @@ function createWindow() {
    * When the frontend fires the ready event send any data already at hand
    * or just send an empty string.
    */
-  ipc.on("FEREADY", () => {
-    mainWindow?.webContents.send("BEPRELOAD", "");
-  });
-
-  /**
-   * When connected to the Riot Client start modification of the League clients
-   * system.yml to enable swagger and to end the users current session.
-   */
-  riotconnector.on("riotclient", (leaguePath: any) => {
-    if (!leaguePath) return;
-
-    console.log(`Riotclient is open; corresponding league path: ${leaguePath}`);
-    const systemYamlPath = path.join(leaguePath, "system.yaml");
-
-    modifySystemYaml(systemYamlPath).catch((err) => {
-      console.error(err);
-      throw new Error("Error modifying system yaml: " + err.message);
-    });
+  ipc.on("FRONTEND_READY", () => {
+    mainWindow?.webContents.send("WAITING", {});
   });
 
   /**
@@ -143,45 +113,16 @@ function createWindow() {
    * swagger json to the frontend to be generated, If not then prompt the user for permission
    * to end the users current league client session so that we can modify the system yaml.
    */
-  riotconnector.on("leagueclient", async (data) => {
-    console.log("initial lcu connect");
-    LCUData = await data;
-    const { username, password, address, port, protocol } = LCUData;
-
-    /**
-     * During the initial load of the client the backend server is not instantly ready
-     * to serve requests so we check the connection first
-     */
-    let serverReady = false;
-    let retries = 6; // reasonable amount of retries
-    while (!serverReady && retries > 0) {
-      await instance
-        .get(`${protocol}://${username}:${password}@${address}:${port}/`)
-        .catch((res) => {
-          if (res.errno !== "ECONNREFUSED") {
-            serverReady = true;
-          } else {
-            retries--;
-          }
-        });
-    }
-
-    if (!serverReady) {
-      mainWindow?.webContents.send("PROMPTRETRY");
-    } else {
-      mainWindow?.webContents.send("LCUCONNECT", LCUData);
-    }
+  riotConnector.on(GAME_START, async (summonerName) => {
+    mainWindow?.webContents.send("NEW_GAME", summonerName);
   });
 
-  /**
-   * If the Riot connector disconnects just remove the old lcu data since it will most likely
-   * be different the next time the lcu is brought back on.
-   */
-  riotconnector.on("disconnect", () => {
-    LCUData = null;
-    if (windowLoaded) {
-      mainWindow?.webContents.send("LCUDISCONNECT");
-    }
+  riotConnector.on(END_GAME, async () => {
+    mainWindow?.webContents.send("WAITING", {});
+  });
+
+  riotConnector.on(READY_TO_RUMBLE, async () => {
+    currentEvent = READY_TO_RUMBLE;
   });
 
   ipc.on("program_close", () => {
@@ -203,8 +144,32 @@ function createWindow() {
   });
 
   expressApp.get( "/", ( req, res ) => {
-    res.send('Hello World!');
-  } );
+    // TODO: provide a compiled version of a more well structured app
+    // TODO: properly code the loop that requests /provide
+    console.log(`serving HTML file`);
+    res.sendFile(path.join(`${ROOT}/../../../public_obs/widget.html`));
+  });
+
+  expressApp.get( "/provide", ( req, res ) => {
+    console.log(`receive a provide request`);
+    res.setHeader('Content-Type', 'text/html');
+
+    if (currentEvent) {
+      if (currentEvent === READY_TO_RUMBLE) {
+        currentEvent = null;
+
+        // TODO: serve something proper here, the best is to add a JSON file to a CDN
+        // then fetch it here, and use the indices to provide the GIF and the duration
+        // we will use the duration to setTimeout of when to cut the GIF
+        // the idea is to display the GIF for the duration (one loop) and then stop it
+
+        res.send('<div style="width:480px"><iframe allow="fullscreen" frameBorder="0" height="360" src="https://giphy.com/embed/skugTMnQC5c3G0MubR/video" width="480"></iframe></div>');
+        return;
+      }
+    }
+
+    res.send('<div></div>');
+  });
 
   expressApp.listen(9990, () => {
     console.log(`server started at http://localhost:9990`);

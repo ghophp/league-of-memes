@@ -2,10 +2,8 @@ import { ipcRenderer as ipc } from "electron";
 
 import { platform } from "os";
 import React, { useEffect, useState } from "react";
-import Logo from "./images/logo.png";
-import Loading from "./Loading";
 
-import appstyles from "./stylesheets/sass/app.module.sass";
+import appStyles from "./stylesheets/sass/app.module.sass";
 
 /**
  * Simple check to see if the platform is windows if not then assume it is macOS since that is the
@@ -14,15 +12,8 @@ import appstyles from "./stylesheets/sass/app.module.sass";
 const IS_WIN = platform() === "win32";
 
 const App = (): React.ReactElement => {
-  const [status, setStatus]: any = useState(
-    "Waiting for League of Legends Client"
-  );
-  const [credentials, setCredentials]: any = useState();
-
-  useEffect(() => {
-    console.log(`Credentials are`);
-    console.log(credentials);
-  }, [credentials]);
+  const [summonerName, setSummonerName]: any = useState("");
+  const [isGameRunning, setIsGameRunning]: any = useState();
 
   /**
    * Things to be done on initial load like notifying the back that the front
@@ -32,75 +23,74 @@ const App = (): React.ReactElement => {
     /**
      * Let the back know the front is ready
      */
-    ipc.send("FEREADY", "");
+    ipc.send("FRONTEND_READY", "");
 
     /**
      * Set a listener for when the LCU ever connects the front can ask for
      * permission to end the users session and set the state which is the swagger
      * json.
      */
-    ipc.on("LCUCONNECT", (event, creds) => {
+    ipc.on("NEW_GAME", (event, name) => {
       console.log("Connected to league client!");
-      setStatus("Connected to league client!");
-      console.log(`credentials_pass: ${JSON.stringify(creds)}`);
-      setCredentials(creds);
+      setIsGameRunning(true);
+      setSummonerName(name);
     });
 
     /**
      * If the LCU disconnects just change the variables back.
      */
-    ipc.on("LCUDISCONNECT", () => {
-      console.log("League client disconnected; attempting to reconnect");
-      setStatus("League client disconnected; attempting to reconnect");
-      setCredentials(null);
+    ipc.on("WAITING", () => {
+      console.log("Waiting Game");
+      setIsGameRunning(false);
+      setSummonerName("");
     });
   }, []);
 
   return (
     <>
       <div
-        className={IS_WIN ? appstyles.titlebar_win : appstyles.titlebar_macos}
+        className={IS_WIN ? appStyles.titlebar_win : appStyles.titlebar_macos}
         draggable={false}
       >
-        <div className={appstyles.column}>
+        <div className={appStyles.column}>
           {IS_WIN ? (
-            <div className={appstyles.buttons_win}>
-              <div className={appstyles.spacer} />
+            <div className={appStyles.buttons_win}>
+              <div className={appStyles.spacer} />
               <div
-                className={appstyles.buttons_min}
+                className={appStyles.buttons_min}
                 onClick={() => {
                   ipc.send("process_min", "");
                 }}
               />
               <div
-                className={appstyles.buttons_minmax}
+                className={appStyles.buttons_minmax}
                 onClick={() => {
                   ipc.send("process_minmax", "");
                 }}
               />
               <div
-                className={appstyles.buttons_close}
+                className={appStyles.buttons_close}
                 onClick={() => {
                   ipc.send("program_close", "");
                 }}
               />
             </div>
           ) : (
-            <div className={appstyles.buttons_mac}>
+            <div className={appStyles.buttons_mac}>
               <div
-                className={appstyles.buttons_close}
+                className={appStyles.buttons_close}
                 onClick={() => {
                   ipc.send("program_close", "");
                 }}
               />
               <div
-                className={appstyles.buttons_minmax}
+                className={appStyles.buttons_minmax}
                 onClick={() => {
                   ipc.send("process_fullscreen", "");
                 }}
               />
               <div
-                className={appstyles.buttons_min}
+                className={appStyles.buttons_min}
                 onClick={() => {
                   ipc.send("process_min", "");
                 }}
@@ -108,25 +98,24 @@ const App = (): React.ReactElement => {
             </div>
           )}
         </div>
-        <div className={appstyles.deadzone} />
-        <div className={appstyles.column}>
-          {IS_WIN && (
-            <div className={appstyles.logo}>
-              <img src={Logo} alt="" /> League of Memes
-            </div>
-          )}
-        </div>
       </div>
 
-      {credentials ? (
-        <div className={appstyles.swaggercontainer}>
-          League of Legends Client Connected
-        </div>
-      ) : (
-        <Loading message={status} />
-      )}
+      <div className={appStyles.main}>
+        {isGameRunning
+          ? `We are ready to roll ${summonerName}!`
+          : "Waiting for game to start"}
+      </div>
+
+      <hr className={appStyles.divisor} />
+
+      <div className={appStyles.secondary}>
+        <span>Add a BrowserSource to your OBS with the following URl:</span>
+        <input type="text" readOnly value="http://localhost:9990" />
+      </div>
     </>
   );
 };
+
+// TODO: finish the layout of this component
 
 export default App;
