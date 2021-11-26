@@ -1,0 +1,69 @@
+<html>
+    <head>
+        <style>
+            body {
+                font-size: 40px;
+            }
+            #root {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            #root iframe {
+                border: none;
+            }
+        </style>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div id="root">&nbsp;</div>
+    </body>
+    <script type="application/javascript">
+      $(document).ready(function(){
+        let isLoaded = false;
+
+        function cleanAndRestart() {
+          console.log('cleaning for restart the iframe');
+          isLoaded = false;
+          $('#root').html('');
+          start();
+        }
+
+        function start() {
+          $.ajax({
+            type: "GET",
+            url: "http://localhost:9990/provide",
+            async: false,
+            success: function(result) {
+              if (typeof result['src'] !== 'undefined') {
+                console.log('received', result);
+                var ifrm = document.createElement("iframe");
+                ifrm.setAttribute("src", result['src']);
+                ifrm.style.width = "640px";
+                ifrm.style.height = "480px";
+                ifrm.frameBorder = 0;
+                ifrm.onload = function() {
+                    console.log('loaded the iframe', isLoaded);
+                    if (!isLoaded) {
+                        isLoaded = true;
+                        let duration = parseInt(result['duration']);
+                        console.log(duration);
+                        setTimeout(cleanAndRestart, duration > 0 ? duration : 2000);
+                    }
+                };
+                $('#root').html(ifrm);
+              } else {
+                setTimeout(start, 2000);
+              }
+            },
+            error: function() {
+              setTimeout(start, 2000);
+            }
+          });
+        }
+
+        start();
+
+      });
+    </script>
+</html>

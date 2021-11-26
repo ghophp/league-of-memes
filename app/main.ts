@@ -17,11 +17,6 @@ const IS_WIN = platform() === "win32";
 const IS_DEV: boolean = require.main.filename.indexOf("app.asar") === -1;
 
 /**
- * Root dir of app.
- */
-const ROOT = `${__dirname}/app`;
-
-/**
  * New instance of the riot connector.
  */
 const riotConnector = new RiotConnector();
@@ -30,6 +25,21 @@ const expressApp = express();
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 let currentEvent = null;
+
+const GAME_START_CLIPS = [
+  {
+    duration: 7800,
+    src: 'https://giphy.com/embed/skugTMnQC5c3G0MubR/video'
+  },
+  {
+    duration: 1700,
+    src: 'https://giphy.com/embed/K5c3azAxtnKlAsO3Jv/video'
+  },
+  {
+    duration: 2300,
+    src: 'https://giphy.com/embed/Ya5RM7BITXGNCiBSj6/video'
+  },
+]
 
 /**
  * Create electron window.
@@ -69,7 +79,7 @@ function createWindow() {
    * localhost:3000 but if we're not in dev then just use the build location.
    */
   mainWindow
-    .loadURL(IS_DEV ? "http://localhost:3000" : `file://${ROOT}/index.html`)
+    .loadURL(IS_DEV ? "http://localhost:3000" : `file://${__dirname}/../index.html`)
     .catch((err) => {
       console.error(err);
       throw new Error("Error loading main page: " + err.message);
@@ -106,6 +116,10 @@ function createWindow() {
    */
   ipc.on("FRONTEND_READY", () => {
     mainWindow?.webContents.send("WAITING", {});
+  });
+
+  ipc.on("FRONTEND_TEST_GAME_START", () => {
+    currentEvent = READY_TO_RUMBLE;
   });
 
   /**
@@ -147,13 +161,11 @@ function createWindow() {
     // TODO: provide a compiled version of a more well structured app
     // TODO: properly code the loop that requests /provide
     console.log(`serving HTML file`);
-    res.sendFile(path.join(`${ROOT}/../../../public_obs/widget.html`));
+    res.sendFile(path.join(`${__dirname}/../widget.html`));
   });
 
   expressApp.get( "/provide", ( req, res ) => {
     console.log(`receive a provide request`);
-    res.setHeader('Content-Type', 'text/html');
-
     if (currentEvent) {
       if (currentEvent === READY_TO_RUMBLE) {
         currentEvent = null;
@@ -162,13 +174,13 @@ function createWindow() {
         // then fetch it here, and use the indices to provide the GIF and the duration
         // we will use the duration to setTimeout of when to cut the GIF
         // the idea is to display the GIF for the duration (one loop) and then stop it
+        res.json(GAME_START_CLIPS[Math.floor(Math.random() * GAME_START_CLIPS.length)]);
 
-        res.send('<div style="width:480px"><iframe allow="fullscreen" frameBorder="0" height="360" src="https://giphy.com/embed/skugTMnQC5c3G0MubR/video" width="480"></iframe></div>');
         return;
       }
     }
 
-    res.send('<div></div>');
+    res.json({});
   });
 
   expressApp.listen(9990, () => {

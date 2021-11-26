@@ -66,7 +66,7 @@ export default class RiotConnector extends EventEmitter {
    * This method will recall startLoop until isRunning is false
    */
   endLoop() {
-    this.startLoop();
+    setTimeout(this.startLoop.bind(this), 1000);
   }
 
   processGameData(data) {
@@ -83,8 +83,9 @@ export default class RiotConnector extends EventEmitter {
   // TODO: duplicated events at the moment
   // TODO: add more events
   processEvents(events) {
+    console.log('should process events', events);
     for (let x = this.currentEventIndex; x < events.length; x++) {
-      const currentEvent = events[this.currentEventIndex];
+      const currentEvent = events[x];
       console.log('should process', currentEvent);
       if (currentEvent.EventName === LEAGUE_GAME_START) {
         this.emit(READY_TO_RUMBLE, {});
@@ -96,6 +97,7 @@ export default class RiotConnector extends EventEmitter {
 
   processErrorTalkingToGame(err) {
     if (this.status === WAITING_GAME_START) {
+      console.log('waiting game to start');
       return;
     }
 

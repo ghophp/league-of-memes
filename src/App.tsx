@@ -46,6 +46,10 @@ const App = (): React.ReactElement => {
     });
   }, []);
 
+  function onTestClick() {
+    ipc.send("FRONTEND_TEST_GAME_START", "");
+  }
+
   return (
     <>
       <div
@@ -111,6 +115,9 @@ const App = (): React.ReactElement => {
       <div className={appStyles.secondary}>
         <span>Add a BrowserSource to your OBS with the following URl:</span>
         <input type="text" readOnly value="http://localhost:9990" />
+        <button type="button" onClick={onTestClick}>
+          Test Game Start
+        </button>
       </div>
     </>
   );
