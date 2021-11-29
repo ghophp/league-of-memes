@@ -1,6 +1,11 @@
 import { platform } from "os";
 import { app, BrowserWindow, ipcMain as ipc, globalShortcut } from "electron";
-import RiotConnector, {END_GAME, GAME_START, READY_TO_RUMBLE} from "./util/RiotConnector";
+import RiotConnector, {
+  END_GAME,
+  GAME_START,
+  GIF_IT,
+  READY_TO_RUMBLE
+} from "./util/RiotConnector";
 import express from "express";
 import * as path from "path";
 
@@ -26,20 +31,196 @@ let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 let currentEvent = null;
 
-const GAME_START_CLIPS = [
-  {
-    duration: 7800,
-    src: 'https://giphy.com/embed/skugTMnQC5c3G0MubR/video'
-  },
-  {
-    duration: 1700,
-    src: 'https://giphy.com/embed/K5c3azAxtnKlAsO3Jv/video'
-  },
-  {
-    duration: 2300,
-    src: 'https://giphy.com/embed/Ya5RM7BITXGNCiBSj6/video'
-  },
-]
+const EVENT_MAPPING = {
+  READY_TO_RUMBLE: [
+    {
+      duration: 7800,
+      src: 'https://giphy.com/embed/skugTMnQC5c3G0MubR/video'
+    },
+    {
+      duration: 1700,
+      src: 'https://giphy.com/embed/K5c3azAxtnKlAsO3Jv/video'
+    },
+    {
+      duration: 2300,
+      src: 'https://giphy.com/embed/Ya5RM7BITXGNCiBSj6/video'
+    },
+  ],
+  MINIONS_READY: [
+    {
+      duration: 6000,
+      src: 'https://giphy.com/embed/j9tZU7CNO12D8LtxHM/video'
+    }
+  ],
+  FIRST_BLOOD_MY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/FdCmvaVHCeRtTvQl1c/video'
+    }
+  ],
+  FIRST_BLOOD_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/WqxqV4WWv7yftHpO4o/video'
+    }
+  ],
+  CHAMPION_KILL_MY_TEAM: [
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/boC9p4gnsY6LU5LggB/video'
+    }
+  ],
+  CHAMPION_KILL_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/MD93yTETrM18tgpjOT/video'
+    }
+  ],
+  MULTI_KILL_MY_TEAM: [
+    {
+      duration: 6000,
+      src: 'https://giphy.com/clips/fazeclan-faze-clan-temperrr-QFpw53aPYX0p6Zrke1'
+    },
+    {
+      duration: 9000,
+      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
+    },
+    {
+      duration: 10000,
+      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
+    }
+  ],
+  MULTI_KILL_ENEMY_TEAM: [
+    {
+      duration: 5000,
+      src: 'https://giphy.com/embed/mJG0uyEvVGShYZZNFK/video'
+    },
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/nZYasmPnlRT1oyHDlV/video'
+    },
+    {
+      duration: 2700,
+      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
+    },
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
+    }
+  ],
+  PENTA_KILL_MY_TEAM: [
+    {
+      duration: 9000,
+      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
+    },
+    {
+      duration: 10000,
+      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
+    }
+  ],
+  PENTA_KILL_ENEMY_TEAM: [
+    {
+      duration: 2700,
+      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
+    },
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
+    }
+  ],
+  TURRET_MY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
+    }
+  ],
+  TURRET_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
+    }
+  ],
+  DRAGON_KILL_MY_TEAM: [
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/xVGHL4aaBicQLDEMf7/video'
+    }
+  ],
+  DRAGON_KILL_ENEMY_TEAM: [
+    {
+      duration: 6000,
+      src: 'https://giphy.com/embed/Q7pU1G2hJIrnGhjFLM/video'
+    }
+  ],
+  STOLE_DRAGON_MY_TEAM: [
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/rmg83k8wKZ7P5eTPYh/video'
+    }
+  ],
+  STOLE_DRAGON_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/tgEdLlE8frubJvUpPJ/video'
+    }
+  ],
+  BARON_KILL_MY_TEAM: [
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/xVGHL4aaBicQLDEMf7/video'
+    }
+  ],
+  BARON_KILL_ENEMY_TEAM: [
+    {
+      duration: 6000,
+      src: 'https://giphy.com/embed/Q7pU1G2hJIrnGhjFLM/video'
+    }
+  ],
+  STOLE_BARON_MY_TEAM: [
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/rmg83k8wKZ7P5eTPYh/video'
+    }
+  ],
+  STOLE_BARON_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/tgEdLlE8frubJvUpPJ/video'
+    }
+  ],
+  INHIB_KILL_MY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
+    }
+  ],
+  INHIB_KILL_ENEMY_TEAM: [
+    {
+      duration: 3000,
+      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
+    }
+  ],
+  ACE_MY_TEAM: [
+    {
+      duration: 9000,
+      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
+    },
+    {
+      duration: 10000,
+      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
+    }
+  ],
+  ACE_ENEMY_TEAM: [
+    {
+      duration: 2700,
+      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
+    },
+    {
+      duration: 4000,
+      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
+    }
+  ],
+};
 
 /**
  * Create electron window.
@@ -47,8 +228,8 @@ const GAME_START_CLIPS = [
 function createWindow() {
   mainWindow = new BrowserWindow({
     center: true,
-    height: 360,
-    minHeight: 360,
+    height: 490,
+    minHeight: 490,
     show: IS_DEV,
     width: 360,
     minWidth: 360,
@@ -135,8 +316,8 @@ function createWindow() {
     mainWindow?.webContents.send("WAITING", {});
   });
 
-  riotConnector.on(READY_TO_RUMBLE, async () => {
-    currentEvent = READY_TO_RUMBLE;
+  riotConnector.on(GIF_IT, async (event) => {
+    currentEvent = event.name;
   });
 
   ipc.on("program_close", () => {
@@ -158,26 +339,15 @@ function createWindow() {
   });
 
   expressApp.get( "/", ( req, res ) => {
-    // TODO: provide a compiled version of a more well structured app
-    // TODO: properly code the loop that requests /provide
-    console.log(`serving HTML file`);
     res.sendFile(path.join(`${__dirname}/../widget.html`));
   });
 
   expressApp.get( "/provide", ( req, res ) => {
-    console.log(`receive a provide request`);
-    if (currentEvent) {
-      if (currentEvent === READY_TO_RUMBLE) {
+    if (currentEvent && typeof EVENT_MAPPING[currentEvent] !== 'undefined') {
+        const currentSet = EVENT_MAPPING[currentEvent];
         currentEvent = null;
-
-        // TODO: serve something proper here, the best is to add a JSON file to a CDN
-        // then fetch it here, and use the indices to provide the GIF and the duration
-        // we will use the duration to setTimeout of when to cut the GIF
-        // the idea is to display the GIF for the duration (one loop) and then stop it
-        res.json(GAME_START_CLIPS[Math.floor(Math.random() * GAME_START_CLIPS.length)]);
-
+        res.json(currentSet[Math.floor(Math.random() * currentSet.length)]);
         return;
-      }
     }
 
     res.json({});

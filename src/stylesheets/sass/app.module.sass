@@ -1,25 +1,58 @@
-$buttonsize: 0.6rem
+$buttonsize: 0.5rem
 
 .main
-  width: 180px
-  margin: 0 auto
+  display: block
+  margin: 0 40px
   padding-top: 40px
+  text-align: center
+
+  input[type="text"]
+    padding: 5px 10px
+    border-radius: 2px
+    margin-right: 5px
+    font-size: 16px
+
+  button
+    font-size: 16px
+    border: 1px solid white
+    background: white
+    outline-color: white
+    color: black !important
+    padding: 6px 14px
+    border-radius: 4px
+
+    &:active
+      opacity: 0.7
+
 
 .divisor
   margin-top: 20px
 
+.img_divisor
+  width: 100%
+  margin-top: 24px
+
 .secondary
-  width: 180px
-  margin: 0 auto
   padding-top: 40px
+  display: block
+  text-align: center
+
+  .statePin
+    width: 8px
+    height: 8px
+    border-radius: 8px
+    text-indent: -9999px
+    margin-right: 6px
+    display: inline-block
 
 .titlebar_macos
   width: 100%
-  height: 2rem
+  height: 1.4rem
   position: fixed
   display: flex
   flex-direction: row
   z-index: 99999
+  -webkit-app-region: drag
 
 .opblock-tag
   border-top: 2px solid white
@@ -44,13 +77,14 @@ $buttonsize: 0.6rem
 .buttons_mac
   display: flex
   flex-direction: row
-  padding-left: 0.5rem
+  padding-left: 8px
   align-items: center
+  margin-top: 4px
 
 .buttons_close
   padding: $buttonsize
   border-radius: 100vw
-  margin: 5% 0.7%
+  margin: 0 3px 0 0
   background-color: crimson
   -webkit-app-region: no-drag
   opacity: 0.9
@@ -61,7 +95,7 @@ $buttonsize: 0.6rem
 .buttons_minmax
   padding: $buttonsize
   border-radius: 100vw
-  margin: 5% 0.7%
+  margin: 0 3px 0 0
   background-color: mediumseagreen
   -webkit-app-region: no-drag
   opacity: 0.9
@@ -73,7 +107,7 @@ $buttonsize: 0.6rem
 .buttons_min
   padding: $buttonsize
   border-radius: 100vw
-  margin: 5% 0.7%
+  margin: 0 3px 0 0
   background-color: coral
   -webkit-app-region: no-drag
   opacity: 0.9

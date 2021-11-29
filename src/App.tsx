@@ -1,8 +1,11 @@
+/* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": false}] */
 import { ipcRenderer as ipc } from "electron";
 
 import { platform } from "os";
 import React, { useEffect, useState } from "react";
 
+import ConfigObs from "./images/config_obs.png";
+import Connected from "./images/connected.png";
 import appStyles from "./stylesheets/sass/app.module.sass";
 
 /**
@@ -105,19 +108,32 @@ const App = (): React.ReactElement => {
       </div>
 
       <div className={appStyles.main}>
-        {isGameRunning
-          ? `We are ready to roll ${summonerName}!`
-          : "Waiting for game to start"}
+        <p>Add the following BrowserSource URL to your OBS:</p>
+        <div>
+          <input type="text" readOnly value="http://localhost:9990/" />
+        </div>
+        <p>Once the source is added, use the button bellow to test:</p>
+        <button type="button" onClick={onTestClick}>
+          Test Event
+        </button>
       </div>
 
-      <hr className={appStyles.divisor} />
+      <img
+        className={appStyles.img_divisor}
+        src={isGameRunning ? Connected : ConfigObs}
+        alt="OBS BrowserSource Configuration"
+      />
 
       <div className={appStyles.secondary}>
-        <span>Add a BrowserSource to your OBS with the following URl:</span>
-        <input type="text" readOnly value="http://localhost:9990" />
-        <button type="button" onClick={onTestClick}>
-          Test Game Start
-        </button>
+        <div
+          className={appStyles.statePin}
+          style={{ backgroundColor: isGameRunning ? "green" : "orange" }}
+        >
+          {" "}
+        </div>
+        {isGameRunning
+          ? `Game Started (${summonerName})!`
+          : "Waiting for game to start"}
       </div>
     </>
   );
