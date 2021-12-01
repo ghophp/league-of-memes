@@ -20,15 +20,6 @@
     </body>
     <script type="application/javascript">
       $(document).ready(function(){
-        let isLoaded = false;
-
-        function cleanAndRestart() {
-          console.log('cleaning for restart the iframe');
-          isLoaded = false;
-          $('#root').html('');
-          start();
-        }
-
         function start() {
           $.ajax({
             type: "GET",
@@ -37,21 +28,22 @@
             success: function(result) {
               if (typeof result['src'] !== 'undefined') {
                 console.log('received', result);
-                var ifrm = document.createElement("iframe");
-                ifrm.setAttribute("src", result['src']);
-                ifrm.style.width = "640px";
-                ifrm.style.height = "480px";
-                ifrm.frameBorder = 0;
-                ifrm.onload = function() {
-                    console.log('loaded the iframe', isLoaded);
-                    if (!isLoaded) {
-                        isLoaded = true;
-                        let duration = parseInt(result['duration']);
-                        console.log(duration);
-                        setTimeout(cleanAndRestart, duration > 0 ? duration : 2000);
-                    }
+                var source = document.createElement('source');
+                source.src = result['src'];
+                source.type = 'video/mp4';
+
+                var video = document.createElement("video");
+                video.style.width = "100%";
+                video.style.height = "100%";
+                video.autoplay = true;
+                video.onended = function() {
+                  console.log('video ended');
+                  $('#root').html('');
+                  start();
                 };
-                $('#root').html(ifrm);
+
+                video.appendChild(source);
+                $('#root').html(video);
               } else {
                 setTimeout(start, 2000);
               }

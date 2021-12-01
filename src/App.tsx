@@ -3,9 +3,11 @@ import { ipcRenderer as ipc } from "electron";
 
 import { platform } from "os";
 import React, { useEffect, useState } from "react";
+import useDynamicRefs from "./ref";
 
 import ConfigObs from "./images/config_obs.png";
 import Connected from "./images/connected.png";
+import Remove from "./images/remove.png";
 import appStyles from "./stylesheets/sass/app.module.sass";
 
 /**
@@ -16,7 +18,10 @@ const IS_WIN = platform() === "win32";
 
 const App = (): React.ReactElement => {
   const [summonerName, setSummonerName]: any = useState("");
+  const [config, setConfig]: any = useState({});
   const [isGameRunning, setIsGameRunning]: any = useState();
+  const [isConfigurationMode, setIsConfigurationMode]: any = useState();
+  const [getRef, setRef] = useDynamicRefs();
 
   /**
    * Things to be done on initial load like notifying the back that the front
@@ -39,6 +44,12 @@ const App = (): React.ReactElement => {
       setSummonerName(name);
     });
 
+    ipc.on("LOAD_CONFIG", (event, loadedConfig) => {
+      setIsGameRunning(false);
+      setSummonerName("");
+      setConfig(loadedConfig);
+    });
+
     /**
      * If the LCU disconnects just change the variables back.
      */
@@ -51,6 +62,31 @@ const App = (): React.ReactElement => {
 
   function onTestClick() {
     ipc.send("FRONTEND_TEST_GAME_START", "");
+  }
+
+  function onConfigureEvents() {
+    setIsConfigurationMode(true);
+  }
+
+  function onSaveConfig() {
+    Object.keys(config).forEach(function (key) {
+      config[key].clips.forEach(function (value, index) {
+        console.log(getRef(`${key}[${index}]`).current?.value);
+      });
+    });
+    setIsConfigurationMode(false);
+  }
+
+  function onAddClipClick(key) {
+    const copyConfig = { ...config };
+    copyConfig[key].clips.push("");
+    setConfig(copyConfig);
+  }
+
+  function onRemoveClip(key, index) {
+    const copyConfig = { ...config };
+    copyConfig[key].clips.splice(index, 1);
+    setConfig(copyConfig);
   }
 
   return (
@@ -107,34 +143,115 @@ const App = (): React.ReactElement => {
         </div>
       </div>
 
-      <div className={appStyles.main}>
-        <p>Add the following BrowserSource URL to your OBS:</p>
+      {!isConfigurationMode && (
         <div>
-          <input type="text" readOnly value="http://localhost:9990/" />
-        </div>
-        <p>Once the source is added, use the button bellow to test:</p>
-        <button type="button" onClick={onTestClick}>
-          Test Event
-        </button>
-      </div>
+          <div className={appStyles.main}>
+            <p>Add the following BrowserSource URL to your OBS:</p>
+            <div>
+              <input type="text" readOnly value="http://localhost:9990/" />
+            </div>
+            <p>Once the source is added, use the button bellow to test:</p>
+            <button
+              type="button"
+              onClick={onTestClick}
+              className={appStyles.regular_button}
+            >
+              Test Event
+            </button>
+            <button
+              type="button"
+              style={{ marginLeft: 10 }}
+              onClick={onConfigureEvents}
+              className={appStyles.regular_button}
+            >
+              Configure
+            </button>
+          </div>
 
-      <img
-        className={appStyles.img_divisor}
-        src={isGameRunning ? Connected : ConfigObs}
-        alt="OBS BrowserSource Configuration"
-      />
+          <img
+            className={appStyles.img_divisor}
+            src={isGameRunning ? Connected : ConfigObs}
+            alt="OBS BrowserSource Configuration"
+          />
 
-      <div className={appStyles.secondary}>
-        <div
-          className={appStyles.statePin}
-          style={{ backgroundColor: isGameRunning ? "green" : "orange" }}
-        >
-          {" "}
+          <div className={appStyles.secondary}>
+            <div
+              className={appStyles.statePin}
+              style={{ backgroundColor: isGameRunning ? "green" : "orange" }}
+            >
+              {" "}
+            </div>
+            {isGameRunning
+              ? `Game being Monitored for Summoner: ${summonerName}`
+              : "Waiting for game to start"}
+          </div>
         </div>
-        {isGameRunning
-          ? `Game Started (${summonerName})!`
-          : "Waiting for game to start"}
-      </div>
+      )}
+
+      {isConfigurationMode && (
+        <form className={appStyles.config_wrapper} onSubmit={onSaveConfig}>
+          <p style={{ fontSize: 12, marginBottom: 20 }}>
+            We expect mp4 video URLs. You can add more than one clip to be
+            triggered per event, we will randomly pick one.
+          </p>
+          {Object.keys(config).map(function (key) {
+            return (
+              <div
+                className={appStyles.config_item_wrapper}
+                key={config[key].event_name}
+              >
+                <div className={appStyles.config_item_title_wrapper}>
+                  <span className={appStyles.config_item_title}>
+                    {config[key].event_label}
+                  </span>
+                  <span className={appStyles.config_item_subtitle}>
+                    {config[key].event_description}
+                  </span>
+                </div>
+                <div className={appStyles.config_item_add}>
+                  <button
+                    type="button"
+                    className={appStyles.small_button}
+                    onClick={() => onAddClipClick(key)}
+                  >
+                    Add Clip
+                  </button>
+                </div>
+                {config[key].clips.length > 0 && (
+                  <ul className={appStyles.config_item_clip_list}>
+                    {config[key].clips.map(function (clipUrl, index) {
+                      return (
+                        <li key={clipUrl}>
+                          <input
+                            name={`${key}[${index}]`}
+                            className={appStyles.config_item_input}
+                            type="text"
+                            defaultValue={clipUrl}
+                            placeholder="Your mp4 video URL"
+                            ref={setRef(`${key}[${index}]`)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => onRemoveClip(key, index)}
+                            className={appStyles.img_button}
+                          >
+                            <img src={Remove} width={16} alt="Remove Clip" />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+          <div style={{ textAlign: "center", paddingBottom: 10 }}>
+            <button type="submit" className={appStyles.regular_button}>
+              Save
+            </button>
+          </div>
+        </form>
+      )}
     </>
   );
 };

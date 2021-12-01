@@ -23,10 +23,10 @@
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "dev": "tsc -p app && yarn copy-widget && concurrently \"cross-env BROWSER=none NODE_ENV=development yarn react:start\" \"wait-on http://localhost:3000/ && electron ./build/app/entry.js\"",
+    "dev": "tsc -p app && yarn copy-extra && concurrently \"cross-env BROWSER=none NODE_ENV=development yarn react:start\" \"wait-on http://localhost:3000/ && electron ./build/app/entry.js\"",
     "react:start": "rescripts start",
-    "build": "yarn && rescripts build && tsc -p app && yarn copy-widget && electron-builder",
-    "copy-widget": "cp ./public_widget/widget.html ./build/widget.html",
+    "build": "yarn && rescripts build && tsc -p app && yarn copy-extra && electron-builder",
+    "copy-extra": "cp ./extra/widget.html ./build/widget.html && cp ./extra/config.json ./build/config.json",
     "postinstall": "electron-builder install-app-deps",
     "format": "prettier --write src/**/*.ts{,x}",
     "lint": "tsc --noEmit && eslint src/**/*.ts{,x}"
@@ -46,7 +46,10 @@
     },
     "extraMetadata": {
       "main": "build/app/entry.js"
-    }
+    },
+    "extraFiles": [
+      "extra/*"
+    ]
   },
   "browserslist": {
     "production": [

@@ -1,0 +1,96 @@
+{
+  "READY_TO_RUMBLE": {
+    "event_description": "Triggered when the game starts.",
+    "event_label": "Game Start",
+    "event_name": "READY_TO_RUMBLE",
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rumble.m4v"
+    ]
+  },
+  "FIRST_BLOOD": {
+    "event_description": "Triggered when you kill the first champion.",
+    "event_label": "First Blood",
+    "event_name": "FIRST_BLOOD",
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/ufc_impressed.m4v"
+    ]
+  },
+  "CHAMPION_KILL": {
+    "event_description": "Triggered when you kill a champion.",
+    "event_label": "Champion Kill",
+    "event_name": "CHAMPION_KILL",
+    "clips": []
+  },
+  "CHAMPION_KILL_VICTIM": {
+    "event_description": "Triggered when you get killed.",
+    "event_label": "Kill Victim",
+    "event_name": "CHAMPION_KILL_VICTIM",
+    "clips": []
+  },
+  "MULTI_KILL": {
+    "event_description": "Triggered when you kill 2/3/4 champions.",
+    "event_label": "Multi Kill",
+    "event_name": "MULTI_KILL",
+    "clips": []
+  },
+  "PENTA_KILL": {
+    "event_description": "Triggered when you kill 5 champions.",
+    "event_label": "Penta Kill",
+    "event_name": "PENTA_KILL",
+    "clips": []
+  },
+  "PENTA_KILL_ENEMY_TEAM": {
+    "event_description": "Triggered when enemy team player kill 5 champions.",
+    "event_label": "Enemy Penta Kill",
+    "event_name": "PENTA_KILL_ENEMY_TEAM",
+    "clips": []
+  },
+  "DRAGON_KILL": {
+    "event_description": "Triggered when you kill or assist a dragon kill.",
+    "event_label": "Dragon Kill/Assist",
+    "event_name": "DRAGON_KILL",
+    "clips": []
+  },
+  "STOLE_DRAGON": {
+    "event_description": "Triggered when you steal or assist a dragon steal.",
+    "event_label": "Stole Dragon",
+    "event_name": "STOLE_DRAGON",
+    "clips": []
+  },
+  "STOLE_DRAGON_ENEMY_TEAM": {
+    "event_description": "Triggered when enemy team steal the dragon from your team.",
+    "event_label": "Enemy Stole Dragon",
+    "event_name": "STOLE_DRAGON_ENEMY_TEAM",
+    "clips": []
+  },
+  "BARON_KILL": {
+    "event_description": "Triggered when you kill or assist the baron kill.",
+    "event_label": "Baron Kill",
+    "event_name": "BARON_KILL",
+    "clips": []
+  },
+  "STOLE_BARON": {
+    "event_description": "Triggered when you steal or assist a baron steal.",
+    "event_label": "Stole Baron",
+    "event_name": "STOLE_BARON",
+    "clips": []
+  },
+  "STOLE_BARON_ENEMY_TEAM": {
+    "event_description": "Triggered when enemy team steal the baron from your team.",
+    "event_label": "Enemy Stole Baron",
+    "event_name": "STOLE_BARON_ENEMY_TEAM",
+    "clips": []
+  },
+  "ACE_MY_TEAM": {
+    "event_description": "Triggered when enemy team steal the baron from your team.",
+    "event_label": "Enemy Stole Baron",
+    "event_name": "ACE_MY_TEAM",
+    "clips": []
+  },
+  "ACE_ENEMY_TEAM": {
+    "event_description": "Triggered when enemy team steal the baron from your team.",
+    "event_label": "Enemy Stole Baron",
+    "event_name": "ACE_ENEMY_TEAM",
+    "clips": []
+  }
+}

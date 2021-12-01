@@ -23,27 +23,18 @@ export const GIF_IT = 'GIF_IT';
 
 /** GIF EVENTS **/
 export const READY_TO_RUMBLE = 'READY_TO_RUMBLE';
-export const MINIONS_READY = 'MINIONS_READY';
-export const FIRST_BLOOD_MY_TEAM = 'FIRST_BLOOD_MY_TEAM';
-export const FIRST_BLOOD_ENEMY_TEAM = 'FIRST_BLOOD_ENEMY_TEAM';
-export const CHAMPION_KILL_MY_TEAM = 'CHAMPION_KILL_MY_TEAM';
-export const CHAMPION_KILL_ENEMY_TEAM = 'CHAMPION_KILL_ENEMY_TEAM';
-export const MULTI_KILL_MY_TEAM = 'MULTI_KILL_MY_TEAM';
-export const MULTI_KILL_ENEMY_TEAM = 'MULTI_KILL_ENEMY_TEAM';
-export const PENTA_KILL_MY_TEAM = 'PENTA_KILL_MY_TEAM';
+export const FIRST_BLOOD = 'FIRST_BLOOD';
+export const CHAMPION_KILL = 'CHAMPION_KILL';
+export const CHAMPION_KILL_VICTIM = 'CHAMPION_KILL_VICTIM';
+export const MULTI_KILL = 'MULTI_KILL';
+export const PENTA_KILL = 'PENTA_KILL';
 export const PENTA_KILL_ENEMY_TEAM = 'PENTA_KILL_ENEMY_TEAM';
-export const TURRET_MY_TEAM = 'TURRET_MY_TEAM';
-export const TURRET_ENEMY_TEAM = 'TURRET_ENEMY_TEAM';
-export const DRAGON_KILL_MY_TEAM = 'DRAGON_KILL_MY_TEAM';
-export const DRAGON_KILL_ENEMY_TEAM = 'DRAGON_KILL_ENEMY_TEAM';
-export const STOLE_DRAGON_MY_TEAM = 'STOLE_DRAGON_MY_TEAM';
+export const DRAGON_KILL = 'DRAGON_KILL';
+export const STOLE_DRAGON = 'STOLE_DRAGON';
 export const STOLE_DRAGON_ENEMY_TEAM = 'STOLE_DRAGON_ENEMY_TEAM';
-export const BARON_KILL_MY_TEAM = 'BARON_KILL_MY_TEAM';
-export const BARON_KILL_ENEMY_TEAM = 'BARON_KILL_ENEMY_TEAM';
-export const STOLE_BARON_MY_TEAM = 'STOLE_BARON_MY_TEAM';
+export const BARON_KILL = 'BARON_KILL';
+export const STOLE_BARON = 'STOLE_BARON';
 export const STOLE_BARON_ENEMY_TEAM = 'STOLE_BARON_ENEMY_TEAM';
-export const INHIB_KILL_MY_TEAM = 'INHIB_KILL_MY_TEAM';
-export const INHIB_KILL_ENEMY_TEAM = 'INHIB_KILL_ENEMY_TEAM';
 export const ACE_MY_TEAM = 'ACE_MY_TEAM';
 export const ACE_ENEMY_TEAM = 'ACE_ENEMY_TEAM';
 
@@ -76,14 +67,11 @@ const EVENTS_WEIGHT = {
 
 /** LEAGUE EVENTS **/
 const LEAGUE_GAME_START = 'GameStart';
-const LEAGUE_MINIONS = 'MinionsSpawning';
 const LEAGUE_FIRST_BLOOD = 'FirstBlood';
 const LEAGUE_CHAMPION_KILL = 'ChampionKill';
 const LEAGUE_MULTI_KILL = 'Multikill';
-const LEAGUE_TURRET_KILL = 'TurretKilled';
 const LEAGUE_DRAGON_KILL = 'DragonKill';
 const LEAGUE_BARON_KILL = 'BaronKill';
-const LEAGUE_INHIB_KILL = 'InhibKilled';
 const LEAGUE_ACE = 'Ace';
 
 const MAX_RETRY_ATTEMPTS = 5;
@@ -153,98 +141,60 @@ export default class RiotConnector extends EventEmitter {
           meta: {}
         });
       }
-      if (currentEvent.EventName === LEAGUE_MINIONS) {
+      if (currentEvent.EventName === LEAGUE_FIRST_BLOOD && this.isMe(currentEvent.Recipient)) {
         eventsToEmit.push({
-          name: MINIONS_READY,
+          name: FIRST_BLOOD,
           meta: {}
         });
       }
-      if (currentEvent.EventName === LEAGUE_FIRST_BLOOD) {
-        if (this.isPlayerOnMyTeam(currentEvent.Recipient)) {
-          eventsToEmit.push({
-            name: FIRST_BLOOD_MY_TEAM,
-            meta: {}
-          });
-        } else {
-          eventsToEmit.push({
-            name: FIRST_BLOOD_ENEMY_TEAM,
-            meta: {}
-          });
-        }
-      }
       if (currentEvent.EventName === LEAGUE_CHAMPION_KILL) {
-        if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+        if (this.isMe(currentEvent.KillerName)) {
           eventsToEmit.push({
-            name: CHAMPION_KILL_MY_TEAM,
+            name: CHAMPION_KILL,
             meta: {}
           });
-        } else {
+        } else if (this.isMe(currentEvent.VictimName)) {
           eventsToEmit.push({
-            name: CHAMPION_KILL_ENEMY_TEAM,
+            name: CHAMPION_KILL_VICTIM,
             meta: {}
           });
         }
       }
       if (currentEvent.EventName === LEAGUE_MULTI_KILL) {
         if (currentEvent.KillStreak >= 5) {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMe(currentEvent.KillerName)) {
             eventsToEmit.push({
-              name: PENTA_KILL_MY_TEAM,
+              name: PENTA_KILL,
               meta: {}
             });
-          } else {
+          } else if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
             eventsToEmit.push({
               name: PENTA_KILL_ENEMY_TEAM,
               meta: {}
             });
           }
-        } else {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
-            eventsToEmit.push({
-              name: MULTI_KILL_MY_TEAM,
-              meta: {}
-            });
-          } else {
-            eventsToEmit.push({
-              name: MULTI_KILL_ENEMY_TEAM,
-              meta: {}
-            });
-          }
-        }
-      }
-      if (currentEvent.EventName === LEAGUE_TURRET_KILL) {
-        if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+        } else if (this.isMe(currentEvent.KillerName)) {
           eventsToEmit.push({
-            name: TURRET_MY_TEAM,
-            meta: {}
-          });
-        } else {
-          eventsToEmit.push({
-            name: TURRET_ENEMY_TEAM,
+            name: MULTI_KILL,
             meta: {}
           });
         }
       }
       if (currentEvent.EventName === LEAGUE_DRAGON_KILL) {
         if (currentEvent.Stolen === 'False') {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
-              name: DRAGON_KILL_MY_TEAM,
-              meta: {}
-            });
-          } else {
-            eventsToEmit.push({
-              name: DRAGON_KILL_ENEMY_TEAM,
+              name: DRAGON_KILL,
               meta: {}
             });
           }
         } else {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
-              name: STOLE_DRAGON_MY_TEAM,
+              name: STOLE_DRAGON,
               meta: {}
             });
-          } else {
+          } else if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
             eventsToEmit.push({
               name: STOLE_DRAGON_ENEMY_TEAM,
               meta: {}
@@ -254,42 +204,24 @@ export default class RiotConnector extends EventEmitter {
       }
       if (currentEvent.EventName === LEAGUE_BARON_KILL) {
         if (currentEvent.Stolen === 'False') {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
-              name: BARON_KILL_MY_TEAM,
-              meta: {}
-            });
-          } else {
-            eventsToEmit.push({
-              name: BARON_KILL_ENEMY_TEAM,
+              name: BARON_KILL,
               meta: {}
             });
           }
         } else {
-          if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
-              name: STOLE_BARON_MY_TEAM,
+              name: STOLE_BARON,
               meta: {}
             });
-          } else {
+          } else if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
             eventsToEmit.push({
               name: STOLE_BARON_ENEMY_TEAM,
               meta: {}
             });
           }
-        }
-      }
-      if (currentEvent.EventName === LEAGUE_INHIB_KILL) {
-        if (this.isPlayerOnMyTeam(currentEvent.KillerName)) {
-          eventsToEmit.push({
-            name: INHIB_KILL_MY_TEAM,
-            meta: {}
-          });
-        } else {
-          eventsToEmit.push({
-            name: INHIB_KILL_ENEMY_TEAM,
-            meta: {}
-          });
         }
       }
       if (currentEvent.EventName === LEAGUE_ACE) {
@@ -310,14 +242,16 @@ export default class RiotConnector extends EventEmitter {
     eventsToEmit.sort((a, b) => {
       const aWeight = EVENTS_WEIGHT[a.name];
       const bWeight = EVENTS_WEIGHT[b.name];
-      if (aWeight < bWeight) {
+      if (aWeight > bWeight) {
         return -1;
       }
-      if (aWeight > bWeight) {
+      if (aWeight < bWeight) {
         return 1;
       }
       return 0;
     });
+
+    console.log('Got events to emit: ', eventsToEmit);
 
     if (eventsToEmit.length > 0) {
       this.emit(GIF_IT, eventsToEmit[0]);
@@ -391,6 +325,19 @@ export default class RiotConnector extends EventEmitter {
 
   isPlayerOnMyTeam(summonerName) {
     return this.teams['my_team'] === this.getPlayerTeam(summonerName);
+  }
+
+  isMe(summonerName) {
+    return summonerName === this.currentGame.activePlayer.summonerName;
+  }
+
+  isMeAmongAssisters(assisters) {
+    for (let x = 0; x < assisters.length; x++) {
+      if (assisters[x] === this.currentGame.activePlayer.summonerName) {
+        return true;
+      }
+    }
+    return false;
   }
 
   isMyTeam(team) {

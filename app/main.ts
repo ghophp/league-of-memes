@@ -1,4 +1,5 @@
 import { platform } from "os";
+import * as fs from "fs";
 import { app, BrowserWindow, ipcMain as ipc, globalShortcut } from "electron";
 import RiotConnector, {
   END_GAME,
@@ -31,201 +32,13 @@ let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 let currentEvent = null;
 
-const EVENT_MAPPING = {
-  READY_TO_RUMBLE: [
-    {
-      duration: 7800,
-      src: 'https://giphy.com/embed/skugTMnQC5c3G0MubR/video'
-    },
-    {
-      duration: 1700,
-      src: 'https://giphy.com/embed/K5c3azAxtnKlAsO3Jv/video'
-    },
-    {
-      duration: 2300,
-      src: 'https://giphy.com/embed/Ya5RM7BITXGNCiBSj6/video'
-    },
-  ],
-  MINIONS_READY: [
-    {
-      duration: 6000,
-      src: 'https://giphy.com/embed/j9tZU7CNO12D8LtxHM/video'
-    }
-  ],
-  FIRST_BLOOD_MY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/FdCmvaVHCeRtTvQl1c/video'
-    }
-  ],
-  FIRST_BLOOD_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/WqxqV4WWv7yftHpO4o/video'
-    }
-  ],
-  CHAMPION_KILL_MY_TEAM: [
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/boC9p4gnsY6LU5LggB/video'
-    }
-  ],
-  CHAMPION_KILL_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/MD93yTETrM18tgpjOT/video'
-    }
-  ],
-  MULTI_KILL_MY_TEAM: [
-    {
-      duration: 6000,
-      src: 'https://giphy.com/clips/fazeclan-faze-clan-temperrr-QFpw53aPYX0p6Zrke1'
-    },
-    {
-      duration: 9000,
-      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
-    },
-    {
-      duration: 10000,
-      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
-    }
-  ],
-  MULTI_KILL_ENEMY_TEAM: [
-    {
-      duration: 5000,
-      src: 'https://giphy.com/embed/mJG0uyEvVGShYZZNFK/video'
-    },
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/nZYasmPnlRT1oyHDlV/video'
-    },
-    {
-      duration: 2700,
-      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
-    },
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
-    }
-  ],
-  PENTA_KILL_MY_TEAM: [
-    {
-      duration: 9000,
-      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
-    },
-    {
-      duration: 10000,
-      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
-    }
-  ],
-  PENTA_KILL_ENEMY_TEAM: [
-    {
-      duration: 2700,
-      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
-    },
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
-    }
-  ],
-  TURRET_MY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
-    }
-  ],
-  TURRET_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
-    }
-  ],
-  DRAGON_KILL_MY_TEAM: [
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/xVGHL4aaBicQLDEMf7/video'
-    }
-  ],
-  DRAGON_KILL_ENEMY_TEAM: [
-    {
-      duration: 6000,
-      src: 'https://giphy.com/embed/Q7pU1G2hJIrnGhjFLM/video'
-    }
-  ],
-  STOLE_DRAGON_MY_TEAM: [
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/rmg83k8wKZ7P5eTPYh/video'
-    }
-  ],
-  STOLE_DRAGON_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/tgEdLlE8frubJvUpPJ/video'
-    }
-  ],
-  BARON_KILL_MY_TEAM: [
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/xVGHL4aaBicQLDEMf7/video'
-    }
-  ],
-  BARON_KILL_ENEMY_TEAM: [
-    {
-      duration: 6000,
-      src: 'https://giphy.com/embed/Q7pU1G2hJIrnGhjFLM/video'
-    }
-  ],
-  STOLE_BARON_MY_TEAM: [
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/rmg83k8wKZ7P5eTPYh/video'
-    }
-  ],
-  STOLE_BARON_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/tgEdLlE8frubJvUpPJ/video'
-    }
-  ],
-  INHIB_KILL_MY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
-    }
-  ],
-  INHIB_KILL_ENEMY_TEAM: [
-    {
-      duration: 3000,
-      src: 'https://giphy.com/embed/KuKm4I6OjNwoZ68np7/video'
-    }
-  ],
-  ACE_MY_TEAM: [
-    {
-      duration: 9000,
-      src: 'https://giphy.com/embed/qjTLsLjcu5PpscKwge/video'
-    },
-    {
-      duration: 10000,
-      src: 'https://giphy.com/embed/Xgh9Myz4Agi40BOwuX/video'
-    }
-  ],
-  ACE_ENEMY_TEAM: [
-    {
-      duration: 2700,
-      src: 'https://giphy.com/embed/AC5se5Bu4qnxY8eKse/video'
-    },
-    {
-      duration: 4000,
-      src: 'https://giphy.com/embed/NWZZYCzeqVX4OKDW4R/video'
-    }
-  ],
-};
-
 /**
  * Create electron window.
  */
 function createWindow() {
+  const configRaw = fs.readFileSync(`${__dirname}/../config.json`, 'utf8');
+  const config = JSON.parse(configRaw);
+
   mainWindow = new BrowserWindow({
     center: true,
     height: 490,
@@ -296,7 +109,7 @@ function createWindow() {
    * or just send an empty string.
    */
   ipc.on("FRONTEND_READY", () => {
-    mainWindow?.webContents.send("WAITING", {});
+    mainWindow?.webContents.send("LOAD_CONFIG", config);
   });
 
   ipc.on("FRONTEND_TEST_GAME_START", () => {
@@ -343,11 +156,13 @@ function createWindow() {
   });
 
   expressApp.get( "/provide", ( req, res ) => {
-    if (currentEvent && typeof EVENT_MAPPING[currentEvent] !== 'undefined') {
-        const currentSet = EVENT_MAPPING[currentEvent];
+    if (currentEvent && typeof config[currentEvent] !== 'undefined') {
+        const currentConfiguredEvent = config[currentEvent];
         currentEvent = null;
-        res.json(currentSet[Math.floor(Math.random() * currentSet.length)]);
-        return;
+        if (currentConfiguredEvent.clips.length > 0) {
+          res.json(currentConfiguredEvent.clips[Math.floor(Math.random() * currentConfiguredEvent.clips.length)]);
+          return;
+        }
     }
 
     res.json({});

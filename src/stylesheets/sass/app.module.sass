@@ -1,5 +1,87 @@
 $buttonsize: 0.5rem
 
+.img_button
+  border: none
+  padding: 6px 0 0px 5px
+  margin: 0
+  background: transparent
+  outline-color: transparent
+
+.regular_button
+  font-size: 16px
+  border: 1px solid white
+  background: white
+  outline-color: white
+  color: black !important
+  padding: 6px 14px
+  border-radius: 4px
+
+.small_button
+  font-size: 12px
+  border: 1px solid white
+  background: white
+  outline-color: white
+  color: black !important
+  padding: 3px 7px
+  border-radius: 4px
+
+.config_wrapper
+  display: block
+  margin: 0 20px
+  padding-top: 25px
+  text-align: left
+
+  .regular_button
+    font-size: 12px
+
+  .config_item_wrapper
+    display: block
+    margin: 0 0 10px 0
+    padding-bottom: 5px
+    border-bottom: 1px solid gray
+    min-height: 40px
+
+    .config_item_title_wrapper
+      display: inline-block
+      max-width: 75%
+      float: left
+      margin-bottom: 5px
+
+      span
+        display: block
+      .config_item_title
+        font-size: 12px
+        font-weight: bold
+      .config_item_subtitle
+        font-size: 10px
+
+    .config_item_input
+      display: block
+      padding: 3px 5px
+      border-radius: 2px
+      margin-right: 5px
+      font-size: 12px
+
+    .config_item_add
+      display: inline-block
+      float: right
+
+    .config_item_clip_list
+      display: block
+      list-style: none
+      padding: 0
+      margin: 0
+      clear: both
+      li
+        font-size: 12px
+        display: flex
+
+        input
+          flex-grow: 1
+          margin-top: 5px
+          margin-right: 0
+          background-color: #4d4d4d !important
+
 .main
   display: block
   margin: 0 40px
@@ -11,15 +93,6 @@ $buttonsize: 0.5rem
     border-radius: 2px
     margin-right: 5px
     font-size: 16px
-
-  button
-    font-size: 16px
-    border: 1px solid white
-    background: white
-    outline-color: white
-    color: black !important
-    padding: 6px 14px
-    border-radius: 4px
 
     &:active
       opacity: 0.7
