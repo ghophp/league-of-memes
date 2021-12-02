@@ -2,10 +2,12 @@ $buttonsize: 0.5rem
 
 .img_button
   border: none
-  padding: 6px 0 0px 5px
+  padding: 6px 0 0 5px
   margin: 0
   background: transparent
-  outline-color: transparent
+  outline: transparent
+  &:hover
+    opacity: 0.5
 
 .regular_button
   font-size: 16px
@@ -61,6 +63,10 @@ $buttonsize: 0.5rem
       border-radius: 2px
       margin-right: 5px
       font-size: 12px
+      direction: ltr
+
+      &:not(:focus)
+        direction: rtl
 
     .config_item_add
       display: inline-block

@@ -31,6 +31,7 @@ const expressApp = express();
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 let currentEvent = null;
+let currentDirectUrl = null;
 let configRaw = null;
 let config = null;
 
@@ -129,6 +130,10 @@ function createWindow() {
     currentEvent = READY_TO_RUMBLE;
   });
 
+  ipc.on("FRONTEND_TEST_CLIP", (event, clipUrl) => {
+    currentDirectUrl = clipUrl;
+  });
+
   /**
    * When the league client connects check if swagger is already enabled if it is just send the
    * swagger json to the frontend to be generated, If not then prompt the user for permission
@@ -169,11 +174,21 @@ function createWindow() {
   });
 
   expressApp.get( "/provide", ( req, res ) => {
+    if (currentDirectUrl) {
+      const copyDirectUrl = currentDirectUrl;
+      currentDirectUrl = null;
+      console.log('gonna play direct url', copyDirectUrl);
+      res.json({
+        src: copyDirectUrl
+      });
+      return;
+    }
     if (currentEvent && typeof config[currentEvent] !== 'undefined') {
         const currentConfiguredEvent = config[currentEvent];
         currentEvent = null;
         if (currentConfiguredEvent.clips.length > 0) {
           const clipUrl = currentConfiguredEvent.clips[Math.floor(Math.random() * currentConfiguredEvent.clips.length)];
+          console.log('gonna play clip', clipUrl);
           res.json({
             src: clipUrl
           });

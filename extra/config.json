@@ -12,85 +12,122 @@
     "event_label": "First Blood",
     "event_name": "FIRST_BLOOD",
     "clips": [
-      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/ufc_impressed.m4v"
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_impressed.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_rose.mp4",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_he_is_out.mp4"
     ]
   },
   "CHAMPION_KILL": {
     "event_description": "Triggered when you kill a champion.",
     "event_label": "Champion Kill",
     "event_name": "CHAMPION_KILL",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/hadouken.mp4",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/shoryuken.mp4",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/paimei.mp4"
+    ]
   },
   "CHAMPION_KILL_VICTIM": {
     "event_description": "Triggered when you get killed.",
     "event_label": "Kill Victim",
     "event_name": "CHAMPION_KILL_VICTIM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/ferrell_no.mp4",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/darth_no.mp4"
+    ]
   },
   "MULTI_KILL": {
     "event_description": "Triggered when you kill 2/3/4 champions.",
     "event_label": "Multi Kill",
     "event_name": "MULTI_KILL",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_impressed.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_rose.mp4",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_he_is_out.mp4"
+    ]
   },
   "PENTA_KILL": {
     "event_description": "Triggered when you kill 5 champions.",
     "event_label": "Penta Kill",
     "event_name": "PENTA_KILL",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/kekw.mp4"
+    ]
   },
   "PENTA_KILL_ENEMY_TEAM": {
     "event_description": "Triggered when enemy team player kill 5 champions.",
     "event_label": "Enemy Penta Kill",
     "event_name": "PENTA_KILL_ENEMY_TEAM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/drama_no.mp4"
+    ]
   },
   "DRAGON_KILL": {
     "event_description": "Triggered when you kill or assist a dragon kill.",
     "event_label": "Dragon Kill/Assist",
     "event_name": "DRAGON_KILL",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4"
+    ]
   },
   "STOLE_DRAGON": {
     "event_description": "Triggered when you steal or assist a dragon steal.",
     "event_label": "Stole Dragon",
     "event_name": "STOLE_DRAGON",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/kekw.mp4"
+    ]
   },
   "STOLE_DRAGON_ENEMY_TEAM": {
     "event_description": "Triggered when enemy team steal the dragon from your team.",
     "event_label": "Enemy Stole Dragon",
     "event_name": "STOLE_DRAGON_ENEMY_TEAM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/no_office.mp4"
+    ]
   },
   "BARON_KILL": {
     "event_description": "Triggered when you kill or assist the baron kill.",
     "event_label": "Baron Kill",
     "event_name": "BARON_KILL",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4"
+    ]
   },
   "STOLE_BARON": {
     "event_description": "Triggered when you steal or assist a baron steal.",
     "event_label": "Stole Baron",
     "event_name": "STOLE_BARON",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/kekw.mp4"
+    ]
   },
   "STOLE_BARON_ENEMY_TEAM": {
     "event_description": "Triggered when enemy team steal the baron from your team.",
     "event_label": "Enemy Stole Baron",
     "event_name": "STOLE_BARON_ENEMY_TEAM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/no_office.mp4"
+    ]
   },
   "ACE_MY_TEAM": {
-    "event_description": "Triggered when enemy team steal the baron from your team.",
-    "event_label": "Enemy Stole Baron",
+    "event_description": "Triggered when your team gets an Ace.",
+    "event_label": "Ace",
     "event_name": "ACE_MY_TEAM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4"
+    ]
   },
   "ACE_ENEMY_TEAM": {
-    "event_description": "Triggered when enemy team steal the baron from your team.",
-    "event_label": "Enemy Stole Baron",
+    "event_description": "Triggered when enemy team gets an Ace.",
+    "event_label": "Enemy Ace",
     "event_name": "ACE_ENEMY_TEAM",
-    "clips": []
+    "clips": [
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v",
+      "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/no_office.mp4"
+    ]
   }
 }

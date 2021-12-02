@@ -1,13 +1,14 @@
-/* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": false}] */
 import { ipcRenderer as ipc } from "electron";
 
 import { platform } from "os";
+/* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 import React, { useEffect, useState } from "react";
 import useDynamicRefs from "./ref";
 
 import ConfigObs from "./images/config_obs.png";
 import Connected from "./images/connected.png";
 import Remove from "./images/remove.png";
+import Play from "./images/play.png";
 import appStyles from "./stylesheets/sass/app.module.sass";
 
 /**
@@ -19,6 +20,7 @@ const IS_WIN = platform() === "win32";
 const App = (): React.ReactElement => {
   const [summonerName, setSummonerName]: any = useState("");
   const [config, setConfig]: any = useState({});
+  const [configCopy, setConfigCopy]: any = useState({});
   const [isGameRunning, setIsGameRunning]: any = useState();
   const [isConfigurationMode, setIsConfigurationMode]: any = useState();
   const [getRef, setRef] = useDynamicRefs();
@@ -59,7 +61,7 @@ const App = (): React.ReactElement => {
      * json.
      */
     ipc.on("NEW_GAME", (event, name) => {
-      console.log("Connected to league client!");
+      console.log("New Game has Started");
       setIsGameRunning(true);
       setSummonerName(name);
     });
@@ -67,11 +69,15 @@ const App = (): React.ReactElement => {
     ipc.on("LOAD_CONFIG", (event, loadedConfig) => {
       setIsGameRunning(false);
       setSummonerName("");
-      setConfig(prepareConfig(loadedConfig));
+      const preparedConfig = prepareConfig(loadedConfig);
+      setConfigCopy(preparedConfig);
+      setConfig(preparedConfig);
     });
 
     ipc.on("CONFIG_SAVED", (event, savedConfig) => {
-      setConfig(prepareConfig(savedConfig));
+      const preparedConfig = prepareConfig(savedConfig);
+      setConfigCopy(preparedConfig);
+      setConfig(preparedConfig);
       setIsConfigurationMode(false);
     });
 
@@ -105,6 +111,19 @@ const App = (): React.ReactElement => {
     return url.protocol === "http:" || url.protocol === "https:";
   }
 
+  function getInputOrOldValue(key, index, clip, configSet) {
+    const inputValue = getRef(clip.id).current?.value;
+    const oldValue = configSet[key].clips[index].url;
+
+    if (inputValue === oldValue) {
+      return oldValue;
+    }
+    if (isValidHttpUrl(inputValue)) {
+      return inputValue;
+    }
+    return "";
+  }
+
   function onSaveConfig(event) {
     const preparedConfig = {};
 
@@ -117,18 +136,12 @@ const App = (): React.ReactElement => {
        * Transform the config back to clips as string
        */
       preparedConfig[key].clips.forEach(function (clip, index) {
-        const inputValue = getRef(clip.id).current?.value;
-        const oldValue = preparedConfig[key].clips[index].url;
-
-        if (inputValue !== oldValue) {
-          if (isValidHttpUrl(inputValue)) {
-            preparedConfig[key].clips[index] = inputValue;
-          } else {
-            preparedConfig[key].clips[index] = "";
-          }
-        } else {
-          preparedConfig[key].clips[index] = oldValue;
-        }
+        preparedConfig[key].clips[index] = getInputOrOldValue(
+          key,
+          index,
+          clip,
+          preparedConfig
+        );
       });
 
       preparedConfig[key].clips = preparedConfig[key].clips.filter(function (
@@ -151,10 +164,27 @@ const App = (): React.ReactElement => {
     setConfig(copyConfig);
   }
 
+  function onTestClip(key, index) {
+    const currentUrl = getInputOrOldValue(
+      key,
+      index,
+      config[key].clips[index],
+      config
+    );
+    if (currentUrl) {
+      ipc.send("FRONTEND_TEST_CLIP", currentUrl);
+    }
+  }
+
   function onRemoveClip(key, index) {
     const copyConfig = { ...config };
     copyConfig[key].clips.splice(index, 1);
     setConfig(copyConfig);
+  }
+
+  function onConfigCancel() {
+    setConfig(configCopy);
+    setIsConfigurationMode(false);
   }
 
   return (
@@ -305,6 +335,13 @@ const App = (): React.ReactElement => {
                           >
                             <img src={Remove} width={16} alt="Remove Clip" />
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => onTestClip(key, index)}
+                            className={appStyles.img_button}
+                          >
+                            <img src={Play} width={12} alt="Play Clip" />
+                          </button>
                         </li>
                       );
                     })}
@@ -316,6 +353,14 @@ const App = (): React.ReactElement => {
           <div style={{ textAlign: "center", paddingBottom: 10 }}>
             <button type="submit" className={appStyles.regular_button}>
               Save
+            </button>
+            <button
+              type="button"
+              style={{ marginLeft: 4, backgroundColor: "whitesmoke" }}
+              className={appStyles.regular_button}
+              onClick={onConfigCancel}
+            >
+              Cancel
             </button>
           </div>
         </form>

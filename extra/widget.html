@@ -41,6 +41,11 @@
                   $('#root').html('');
                   start();
                 };
+                video.addEventListener('error', function(event) {
+                  console.log('video error', event);
+                  $('#root').html('');
+                  setTimeout(start, 1000);
+                }, true);
 
                 video.appendChild(source);
                 $('#root').html(video);
@@ -53,9 +58,7 @@
             }
           });
         }
-
         start();
-
       });
     </script>
 </html>
