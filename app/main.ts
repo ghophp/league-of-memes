@@ -31,13 +31,20 @@ const expressApp = express();
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
 let currentEvent = null;
+let configRaw = null;
+let config = null;
+
+function loadConfig() {
+  console.log(`${process.resourcesPath}/../extra/config.json`);
+  configRaw = fs.readFileSync(IS_DEV ? `${__dirname}/../config.json` : `${process.resourcesPath}/../extra/config.json`, 'utf8');
+  config = JSON.parse(configRaw);
+}
 
 /**
  * Create electron window.
  */
 function createWindow() {
-  const configRaw = fs.readFileSync(`${__dirname}/../config.json`, 'utf8');
-  const config = JSON.parse(configRaw);
+  loadConfig();
 
   mainWindow = new BrowserWindow({
     center: true,
@@ -112,6 +119,12 @@ function createWindow() {
     mainWindow?.webContents.send("LOAD_CONFIG", config);
   });
 
+  ipc.on("FRONTEND_SAVE_CONFIG", (event, savedConfig) => {
+    fs.writeFileSync(IS_DEV ? `${__dirname}/../config.json` : `${process.resourcesPath}/../extra/config.json`, JSON.stringify(savedConfig))
+    loadConfig();
+    mainWindow?.webContents.send("CONFIG_SAVED", savedConfig);
+  });
+
   ipc.on("FRONTEND_TEST_GAME_START", () => {
     currentEvent = READY_TO_RUMBLE;
   });
@@ -152,7 +165,7 @@ function createWindow() {
   });
 
   expressApp.get( "/", ( req, res ) => {
-    res.sendFile(path.join(`${__dirname}/../widget.html`));
+    res.sendFile(path.join(IS_DEV ? `${__dirname}/../widget.html` : `${process.resourcesPath}/../extra/widget.html`));
   });
 
   expressApp.get( "/provide", ( req, res ) => {
@@ -160,7 +173,10 @@ function createWindow() {
         const currentConfiguredEvent = config[currentEvent];
         currentEvent = null;
         if (currentConfiguredEvent.clips.length > 0) {
-          res.json(currentConfiguredEvent.clips[Math.floor(Math.random() * currentConfiguredEvent.clips.length)]);
+          const clipUrl = currentConfiguredEvent.clips[Math.floor(Math.random() * currentConfiguredEvent.clips.length)];
+          res.json({
+            src: clipUrl
+          });
           return;
         }
     }

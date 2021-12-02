@@ -1,55 +1,42 @@
 League of Memes
 ----
 
-OBS Widget to make League of Legends streaming even more fun!
+League of Memes goal is to, whenever an important event related to our character happens on League of Legends, we want to trigger a video clip, which the user can configure. This should allow for some cool moments as a player streams League of Legends with its community.
 
-## Getting Started
+### General Architecture
 
-## Requirements
+League of Memes is an Electron App, which exposes an express server at `http://localhost:9990` to be used as a BrowserSource in OBS.
+
+![](./docs/LeagueOfMemes.png)
+
+### Requirements
+
+Precompiled binaries are available for the following platforms:
+
    - Windows 7 or above (64-bit)
    - macOS sierra or above (64-bit)
 
 *Note: 32-bit is unsupported.*
 
-## Building
-### Prerequisites
+### Building
+
+#### Prerequisites
  - [Yarn 1.x.x](https://classic.yarnpkg.com/lang/en/)
-
-### Run from source
-
-#### 1. Clone from repo
-```SHELL
-git clone https://github.com/Pupix/rift-explorer.git
-```
-
-#### 2. Install dependencies
+ 
+#### Install dependencies
 ```SHELL
 yarn install
 ```
 
-#### 3. Start League of Legends
-<br>
-
-#### 4. Start Rift Explorer
+#### Start Development
 ```shell
 yarn dev
 ```
 
-<br/>
+#### Build
 
-### Build from source
+This will yield a packaging for your application depending on the OS you are running the command from.
 
-#### 1. Clone from repo
-```SHELL
-git clone https://github.com/Pupix/rift-explorer.git
-```
-
-#### 2. Install dependencies
-```SHELL
-yarn install
-```
-
-#### 3. Build
 ```shell
 yarn build
 ```

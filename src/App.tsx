@@ -24,6 +24,26 @@ const App = (): React.ReactElement => {
   const [getRef, setRef] = useDynamicRefs();
 
   /**
+   * Prepare the config with clips as objects
+   * @param loadedConfig
+   */
+  function prepareConfig(loadedConfig) {
+    const copyConfig = { ...loadedConfig };
+    Object.keys(copyConfig).forEach(function (key) {
+      copyConfig[key].clips = copyConfig[key].clips.map(function (
+        value,
+        index
+      ) {
+        return {
+          id: `${key}[${index}]`,
+          url: value,
+        };
+      });
+    });
+    return copyConfig;
+  }
+
+  /**
    * Things to be done on initial load like notifying the back that the front
    * has loaded and is ready to receive data
    */
@@ -47,7 +67,12 @@ const App = (): React.ReactElement => {
     ipc.on("LOAD_CONFIG", (event, loadedConfig) => {
       setIsGameRunning(false);
       setSummonerName("");
-      setConfig(loadedConfig);
+      setConfig(prepareConfig(loadedConfig));
+    });
+
+    ipc.on("CONFIG_SAVED", (event, savedConfig) => {
+      setConfig(prepareConfig(savedConfig));
+      setIsConfigurationMode(false);
     });
 
     /**
@@ -68,18 +93,61 @@ const App = (): React.ReactElement => {
     setIsConfigurationMode(true);
   }
 
-  function onSaveConfig() {
+  function isValidHttpUrl(string) {
+    let url;
+
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;
+    }
+
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
+  function onSaveConfig(event) {
+    const preparedConfig = {};
+
     Object.keys(config).forEach(function (key) {
-      config[key].clips.forEach(function (value, index) {
-        console.log(getRef(`${key}[${index}]`).current?.value);
+      if (typeof preparedConfig[key] === "undefined") {
+        preparedConfig[key] = { ...config[key] };
+      }
+
+      /**
+       * Transform the config back to clips as string
+       */
+      preparedConfig[key].clips.forEach(function (clip, index) {
+        const inputValue = getRef(clip.id).current?.value;
+        const oldValue = preparedConfig[key].clips[index].url;
+
+        if (inputValue !== oldValue) {
+          if (isValidHttpUrl(inputValue)) {
+            preparedConfig[key].clips[index] = inputValue;
+          } else {
+            preparedConfig[key].clips[index] = "";
+          }
+        } else {
+          preparedConfig[key].clips[index] = oldValue;
+        }
+      });
+
+      preparedConfig[key].clips = preparedConfig[key].clips.filter(function (
+        v
+      ) {
+        return v !== "";
       });
     });
-    setIsConfigurationMode(false);
+
+    ipc.send("FRONTEND_SAVE_CONFIG", preparedConfig);
+    event.preventDefault();
   }
 
   function onAddClipClick(key) {
     const copyConfig = { ...config };
-    copyConfig[key].clips.push("");
+    copyConfig[key].clips.push({
+      id: `${key}[${copyConfig[key].clips.length}]`,
+      url: "",
+    });
     setConfig(copyConfig);
   }
 
@@ -219,16 +287,16 @@ const App = (): React.ReactElement => {
                 </div>
                 {config[key].clips.length > 0 && (
                   <ul className={appStyles.config_item_clip_list}>
-                    {config[key].clips.map(function (clipUrl, index) {
+                    {config[key].clips.map(function (clip, index) {
                       return (
-                        <li key={clipUrl}>
+                        <li key={clip.id}>
                           <input
-                            name={`${key}[${index}]`}
+                            name={clip.id}
                             className={appStyles.config_item_input}
                             type="text"
-                            defaultValue={clipUrl}
+                            defaultValue={clip.url}
                             placeholder="Your mp4 video URL"
-                            ref={setRef(`${key}[${index}]`)}
+                            ref={setRef(clip.id)}
                           />
                           <button
                             type="button"

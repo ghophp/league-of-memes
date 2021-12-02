@@ -13,7 +13,6 @@
   "dependencies": {
     "@sentry/electron": "^2.2.0",
     "axios": "^0.21.1",
-    "electron": "^11.2.1",
     "express": "^4.17.1",
     "mixin-deep": "^2.0.1",
     "react": "^17.0.1",
@@ -75,6 +74,7 @@
     "@typescript-eslint/parser": "^4.14.1",
     "concurrently": "^6.4.0",
     "cross-env": "^7.0.3",
+    "electron": "^11.2.1",
     "electron-builder": "^22.9.1",
     "eslint": "^7.18.0",
     "eslint-config-airbnb": "18.2.1",
