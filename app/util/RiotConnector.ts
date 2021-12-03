@@ -172,46 +172,50 @@ export default class RiotConnector extends EventEmitter {
         }
       }
       if (currentEvent.EventName === LEAGUE_DRAGON_KILL) {
-        if (currentEvent.Stolen === 'False') {
-          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
-            eventsToEmit.push({
-              name: DRAGON_KILL,
-              meta: {}
-            });
-          }
-        } else {
-          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
-            eventsToEmit.push({
-              name: STOLE_DRAGON,
-              meta: {}
-            });
-          } else if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+        if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
               name: STOLE_DRAGON_ENEMY_TEAM,
               meta: {}
             });
           }
+        } else {
+          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
+            if (currentEvent.Stolen === 'False') {
+              eventsToEmit.push({
+                name: DRAGON_KILL,
+                meta: {}
+              });
+            } else {
+              eventsToEmit.push({
+                name: STOLE_DRAGON,
+                meta: {}
+              });
+            }
+          }
         }
       }
       if (currentEvent.EventName === LEAGUE_BARON_KILL) {
-        if (currentEvent.Stolen === 'False') {
-          if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
+        if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
+          if (this.isMeAmongAssisters(currentEvent.Assisters || [])) {
             eventsToEmit.push({
-              name: BARON_KILL,
+              name: STOLE_BARON_ENEMY_TEAM,
               meta: {}
             });
           }
         } else {
           if (this.isMe(currentEvent.KillerName) || this.isMeAmongAssisters(currentEvent.Assisters || [])) {
-            eventsToEmit.push({
-              name: STOLE_BARON,
-              meta: {}
-            });
-          } else if (!this.isPlayerOnMyTeam(currentEvent.KillerName)) {
-            eventsToEmit.push({
-              name: STOLE_BARON_ENEMY_TEAM,
-              meta: {}
-            });
+            if (currentEvent.Stolen === 'False') {
+              eventsToEmit.push({
+                name: BARON_KILL,
+                meta: {}
+              });
+            } else {
+              eventsToEmit.push({
+                name: STOLE_BARON,
+                meta: {}
+              });
+            }
           }
         }
       }

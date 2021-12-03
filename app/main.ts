@@ -223,9 +223,7 @@ app.on("ready", () => {
 });
 
 app.on("window-all-closed", () => {
-  if (platform() !== "darwin") {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on("activate", () => {
