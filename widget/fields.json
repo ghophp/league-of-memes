@@ -1,0 +1,36 @@
+{
+  "hasDownloadedAgent": {
+    "type": "dropdown",
+    "label": "Have you downloaded the agent?",
+    "value": "yes",
+    "options": {
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "READY_TO_RUMBLE": {
+    "type": "video-input",
+    "label": "Triggered when the game starts",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rumble.m4v"
+  },
+  "FIRST_BLOOD": {
+    "type": "video-input",
+    "label": "Triggered when you kill the first champion",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_impressed.m4v"
+  },
+  "CHAMPION_KILL": {
+    "type": "video-input",
+    "label": "Triggered when you kill a champion",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/hadouken.mp4"
+  },
+  "CHAMPION_KILL_VICTIM": {
+    "type": "video-input",
+    "label": "Triggered when you get killed.",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v"
+  },
+  "MULTI_KILL": {
+    "type": "video-input",
+    "label": "Triggered when you kill 2/3/4 champions",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_rose.mp4"
+  }
+}

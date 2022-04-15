@@ -3,13 +3,11 @@ import { ipcRenderer as ipc } from "electron";
 import { platform } from "os";
 /* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 import React, { useEffect, useState } from "react";
-import useDynamicRefs from "./ref";
-
 import ConfigObs from "./images/config_obs.png";
 import Connected from "./images/connected.png";
-import Remove from "./images/remove.png";
-import Play from "./images/play.png";
 import appStyles from "./stylesheets/sass/app.module.sass";
+
+const io = require("socket.io-client");
 
 /**
  * Simple check to see if the platform is windows if not then assume it is macOS since that is the
@@ -19,31 +17,9 @@ const IS_WIN = platform() === "win32";
 
 const App = (): React.ReactElement => {
   const [summonerName, setSummonerName]: any = useState("");
-  const [config, setConfig]: any = useState({});
-  const [configCopy, setConfigCopy]: any = useState({});
+  const [apiKey, setApiKey]: any = useState("");
   const [isGameRunning, setIsGameRunning]: any = useState();
-  const [isConfigurationMode, setIsConfigurationMode]: any = useState();
-  const [getRef, setRef] = useDynamicRefs();
-
-  /**
-   * Prepare the config with clips as objects
-   * @param loadedConfig
-   */
-  function prepareConfig(loadedConfig) {
-    const copyConfig = { ...loadedConfig };
-    Object.keys(copyConfig).forEach(function (key) {
-      copyConfig[key].clips = copyConfig[key].clips.map(function (
-        value,
-        index
-      ) {
-        return {
-          id: `${key}[${index}]`,
-          url: value,
-        };
-      });
-    });
-    return copyConfig;
-  }
+  const [socket, setSocket]: any = useState(null);
 
   /**
    * Things to be done on initial load like notifying the back that the front
@@ -64,21 +40,16 @@ const App = (): React.ReactElement => {
       console.log("New Game has Started");
       setIsGameRunning(true);
       setSummonerName(name);
+
+      if (socket) {
+        socket.emit("event:test", { type: "new_game", value: true });
+      }
     });
 
-    ipc.on("LOAD_CONFIG", (event, loadedConfig) => {
-      setIsGameRunning(false);
-      setSummonerName("");
-      const preparedConfig = prepareConfig(loadedConfig);
-      setConfigCopy(preparedConfig);
-      setConfig(preparedConfig);
-    });
-
-    ipc.on("CONFIG_SAVED", (event, savedConfig) => {
-      const preparedConfig = prepareConfig(savedConfig);
-      setConfigCopy(preparedConfig);
-      setConfig(preparedConfig);
-      setIsConfigurationMode(false);
+    ipc.on("GIF_IT", (event, eventName) => {
+      if (socket) {
+        socket.emit("event:test", { type: "video", value: eventName });
+      }
     });
 
     /**
@@ -88,103 +59,52 @@ const App = (): React.ReactElement => {
       console.log("Waiting Game");
       setIsGameRunning(false);
       setSummonerName("");
-    });
-  }, []);
 
-  function onTestClick() {
-    ipc.send("FRONTEND_TEST_GAME_START", "");
-  }
-
-  function onConfigureEvents() {
-    setIsConfigurationMode(true);
-  }
-
-  function isValidHttpUrl(string) {
-    let url;
-
-    try {
-      url = new URL(string);
-    } catch (_) {
-      return false;
-    }
-
-    return url.protocol === "http:" || url.protocol === "https:";
-  }
-
-  function getInputOrOldValue(key, index, clip, configSet) {
-    const inputValue = getRef(clip.id).current?.value;
-    const oldValue = configSet[key].clips[index].url;
-
-    if (inputValue === oldValue) {
-      return oldValue;
-    }
-    if (isValidHttpUrl(inputValue)) {
-      return inputValue;
-    }
-    return "";
-  }
-
-  function onSaveConfig(event) {
-    const preparedConfig = {};
-
-    Object.keys(config).forEach(function (key) {
-      if (typeof preparedConfig[key] === "undefined") {
-        preparedConfig[key] = { ...config[key] };
+      if (socket) {
+        socket.emit("event:test", { type: "waiting_game", value: true });
       }
+    });
+  }, [socket]);
 
-      /**
-       * Transform the config back to clips as string
-       */
-      preparedConfig[key].clips.forEach(function (clip, index) {
-        preparedConfig[key].clips[index] = getInputOrOldValue(
-          key,
-          index,
-          clip,
-          preparedConfig
-        );
-      });
-
-      preparedConfig[key].clips = preparedConfig[key].clips.filter(function (
-        v
-      ) {
-        return v !== "";
-      });
+  function startSocket(token) {
+    const currentSocket = io("https://realtime.streamelements.com", {
+      transports: ["websocket"],
     });
 
-    ipc.send("FRONTEND_SAVE_CONFIG", preparedConfig);
-    event.preventDefault();
-  }
-
-  function onAddClipClick(key) {
-    const copyConfig = { ...config };
-    copyConfig[key].clips.push({
-      id: `${key}[${copyConfig[key].clips.length}]`,
-      url: "",
+    currentSocket.on("connect_error", (err) => {
+      console.log("Socket Error", err);
+      currentSocket.open();
     });
-    setConfig(copyConfig);
-  }
 
-  function onTestClip(key, index) {
-    const currentUrl = getInputOrOldValue(
-      key,
-      index,
-      config[key].clips[index],
-      config
-    );
-    if (currentUrl) {
-      ipc.send("FRONTEND_TEST_CLIP", currentUrl);
+    function onConnect() {
+      console.log("Successfully connected to the websocket");
+      currentSocket.emit("authenticate", { method: "apikey", token });
     }
+
+    function onDisconnect() {
+      console.log("Disconnected from websocket");
+      currentSocket.open();
+    }
+
+    function onAuthenticated(data) {
+      currentSocket.emit("event:test", { type: "ping", value: "PING" });
+    }
+
+    currentSocket.on("connect", onConnect);
+    currentSocket.on("disconnect", onDisconnect);
+    currentSocket.on("authenticated", onAuthenticated);
+    currentSocket.on("unauthorized", console.error);
+
+    currentSocket.open();
+    setSocket(currentSocket);
   }
 
-  function onRemoveClip(key, index) {
-    const copyConfig = { ...config };
-    copyConfig[key].clips.splice(index, 1);
-    setConfig(copyConfig);
-  }
-
-  function onConfigCancel() {
-    setConfig(configCopy);
-    setIsConfigurationMode(false);
+  function onPingWidgetClick() {
+    if (!socket) {
+      startSocket(apiKey);
+    } else {
+      socket.emit("event:test", { type: "ping", value: "PING" });
+    }
   }
 
   return (
@@ -241,134 +161,59 @@ const App = (): React.ReactElement => {
         </div>
       </div>
 
-      {!isConfigurationMode && (
-        <div>
-          <div className={appStyles.main}>
-            <p>Add the following BrowserSource URL to your OBS:</p>
-            <div>
-              <input type="text" readOnly value="http://localhost:9990/" />
-            </div>
-            <p>Once the source is added, use the button bellow to test:</p>
-            <button
-              type="button"
-              onClick={onTestClick}
-              className={appStyles.regular_button}
-            >
-              Test Event
-            </button>
-            <button
-              type="button"
-              style={{ marginLeft: 10 }}
-              onClick={onConfigureEvents}
-              className={appStyles.regular_button}
-            >
-              Configure
-            </button>
-          </div>
-
-          <img
-            className={appStyles.img_divisor}
-            src={isGameRunning ? Connected : ConfigObs}
-            alt="OBS BrowserSource Configuration"
-          />
-
-          <div className={appStyles.secondary}>
-            <div
-              className={appStyles.statePin}
-              style={{ backgroundColor: isGameRunning ? "green" : "orange" }}
-            >
-              {" "}
-            </div>
-            {isGameRunning
-              ? `Game being Monitored for Summoner: ${summonerName}`
-              : "Waiting for game to start"}
-          </div>
-        </div>
-      )}
-
-      {isConfigurationMode && (
-        <form className={appStyles.config_wrapper} onSubmit={onSaveConfig}>
-          <p style={{ fontSize: 12, marginBottom: 20 }}>
-            We expect mp4 video URLs. You can add more than one clip to be
-            triggered per event, we will randomly pick one.
+      <div>
+        <div className={appStyles.main}>
+          <p style={{ marginBottom: 0 }}>
+            Please inform your <b>Overlay token</b>
           </p>
-          {Object.keys(config).map(function (key) {
-            return (
-              <div
-                className={appStyles.config_item_wrapper}
-                key={config[key].event_name}
-              >
-                <div className={appStyles.config_item_title_wrapper}>
-                  <span className={appStyles.config_item_title}>
-                    {config[key].event_label}
-                  </span>
-                  <span className={appStyles.config_item_subtitle}>
-                    {config[key].event_description}
-                  </span>
-                </div>
-                <div className={appStyles.config_item_add}>
-                  <button
-                    type="button"
-                    className={appStyles.small_button}
-                    onClick={() => onAddClipClick(key)}
-                  >
-                    Add Clip
-                  </button>
-                </div>
-                {config[key].clips.length > 0 && (
-                  <ul className={appStyles.config_item_clip_list}>
-                    {config[key].clips.map(function (clip, index) {
-                      return (
-                        <li key={clip.id}>
-                          <input
-                            name={clip.id}
-                            className={appStyles.config_item_input}
-                            type="text"
-                            defaultValue={clip.url}
-                            placeholder="Your mp4 video URL"
-                            ref={setRef(clip.id)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => onRemoveClip(key, index)}
-                            className={appStyles.img_button}
-                          >
-                            <img src={Remove} width={16} alt="Remove Clip" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onTestClip(key, index)}
-                            className={appStyles.img_button}
-                          >
-                            <img src={Play} width={12} alt="Play Clip" />
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-          <div style={{ textAlign: "center", paddingBottom: 10 }}>
-            <button type="submit" className={appStyles.regular_button}>
-              Save
-            </button>
-            <button
-              type="button"
-              style={{ marginLeft: 4, backgroundColor: "whitesmoke" }}
-              className={appStyles.regular_button}
-              onClick={onConfigCancel}
-            >
-              Cancel
-            </button>
+          <small
+            style={{ display: "block", fontSize: "10px", marginBottom: 10 }}
+          >
+            https://streamelements.com/dashboard/account/channels
+          </small>
+          <div>
+            <input
+              type="text"
+              value={apiKey}
+              placeholder="eg. xxx99xx999x9x9x9x99x9x9xx9x99xx9x"
+              onChange={(event) => setApiKey(event.target.value)}
+              style={{ fontSize: "1.2em" }}
+            />
           </div>
-        </form>
-      )}
+          <button
+            type="button"
+            onClick={onPingWidgetClick}
+            className={appStyles.regular_button}
+            style={{ marginTop: "10px" }}
+          >
+            Ping Widget
+          </button>
+        </div>
+
+        <img
+          className={appStyles.img_divisor}
+          src={isGameRunning ? Connected : ConfigObs}
+          alt="OBS BrowserSource Configuration"
+        />
+
+        <div className={appStyles.secondary}>
+          <div
+            className={appStyles.statePin}
+            style={{ backgroundColor: isGameRunning ? "green" : "orange" }}
+          >
+            {" "}
+          </div>
+          {isGameRunning
+            ? `Meme Ready ${summonerName}!`
+            : "Waiting for game to start"}
+        </div>
+
+        <small className={appStyles.footnote}>
+          Configure the video for each game event at the <b>Overlay Editor</b>.
+        </small>
+      </div>
     </>
   );
 };
-
-// TODO: finish the layout of this component
 
 export default App;

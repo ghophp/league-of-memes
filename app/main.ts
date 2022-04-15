@@ -1,14 +1,10 @@
 import { platform } from "os";
-import * as fs from "fs";
 import { app, BrowserWindow, ipcMain as ipc, globalShortcut } from "electron";
 import RiotConnector, {
   END_GAME,
   GAME_START,
   GIF_IT,
-  READY_TO_RUMBLE
 } from "./util/RiotConnector";
-import express from "express";
-import * as path from "path";
 
 app.commandLine.appendSwitch("ignore-certificate-errors", "true");
 
@@ -26,27 +22,14 @@ const IS_DEV: boolean = require.main.filename.indexOf("app.asar") === -1;
  * New instance of the riot connector.
  */
 const riotConnector = new RiotConnector();
-const expressApp = express();
 
 let mainWindow: BrowserWindow | null = null;
 let windowLoaded = false;
-let currentEvent = null;
-let currentDirectUrl = null;
-let configRaw = null;
-let config = null;
-
-function loadConfig() {
-  console.log(`${process.resourcesPath}/../extra/config.json`);
-  configRaw = fs.readFileSync(IS_DEV ? `${__dirname}/../config.json` : `${process.resourcesPath}/../extra/config.json`, 'utf8');
-  config = JSON.parse(configRaw);
-}
 
 /**
  * Create electron window.
  */
 function createWindow() {
-  loadConfig();
-
   mainWindow = new BrowserWindow({
     center: true,
     height: 490,
@@ -117,21 +100,7 @@ function createWindow() {
    * or just send an empty string.
    */
   ipc.on("FRONTEND_READY", () => {
-    mainWindow?.webContents.send("LOAD_CONFIG", config);
-  });
 
-  ipc.on("FRONTEND_SAVE_CONFIG", (event, savedConfig) => {
-    fs.writeFileSync(IS_DEV ? `${__dirname}/../config.json` : `${process.resourcesPath}/../extra/config.json`, JSON.stringify(savedConfig))
-    loadConfig();
-    mainWindow?.webContents.send("CONFIG_SAVED", savedConfig);
-  });
-
-  ipc.on("FRONTEND_TEST_GAME_START", () => {
-    currentEvent = READY_TO_RUMBLE;
-  });
-
-  ipc.on("FRONTEND_TEST_CLIP", (event, clipUrl) => {
-    currentDirectUrl = clipUrl;
   });
 
   /**
@@ -148,7 +117,8 @@ function createWindow() {
   });
 
   riotConnector.on(GIF_IT, async (event) => {
-    currentEvent = event.name;
+    console.log('should send gif_it event to frontend', event);
+    mainWindow?.webContents.send("GIF_IT", event.name);
   });
 
   ipc.on("program_close", () => {
@@ -167,40 +137,6 @@ function createWindow() {
 
   ipc.on("process_min", () => {
     mainWindow.minimize();
-  });
-
-  expressApp.get( "/", ( req, res ) => {
-    res.sendFile(path.join(IS_DEV ? `${__dirname}/../widget.html` : `${process.resourcesPath}/../extra/widget.html`));
-  });
-
-  expressApp.get( "/provide", ( req, res ) => {
-    if (currentDirectUrl) {
-      const copyDirectUrl = currentDirectUrl;
-      currentDirectUrl = null;
-      console.log('gonna play direct url', copyDirectUrl);
-      res.json({
-        src: copyDirectUrl
-      });
-      return;
-    }
-    if (currentEvent && typeof config[currentEvent] !== 'undefined') {
-        const currentConfiguredEvent = config[currentEvent];
-        currentEvent = null;
-        if (currentConfiguredEvent.clips.length > 0) {
-          const clipUrl = currentConfiguredEvent.clips[Math.floor(Math.random() * currentConfiguredEvent.clips.length)];
-          console.log('gonna play clip', clipUrl);
-          res.json({
-            src: clipUrl
-          });
-          return;
-        }
-    }
-
-    res.json({});
-  });
-
-  expressApp.listen(9990, () => {
-    console.log(`server started at http://localhost:9990`);
   });
 }
 
