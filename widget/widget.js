@@ -3,6 +3,7 @@ let hasDownloadedAgent = false;
 let agentIsOnline = false;
 let waitingGame = true;
 let fieldData = {};
+let isPlayingVideo = false;
 
 const logSuffix = '[League of Memes]';
 
@@ -14,6 +15,9 @@ window.addEventListener('onEventReceived', function (obj) {
         console.log(logSuffix, 'received test event!', currentEvent);
 
         if (currentEvent && currentEvent.type === 'ping') {
+            agentIsOnline = true;
+        }
+        if (currentEvent && currentEvent.type === 'test_event') {
             agentIsOnline = true;
             onVideoReceived("https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4");
         }
@@ -48,6 +52,12 @@ function updateView() {
 }
 
 function onVideoReceived(src) {
+    if (isPlayingVideo) {
+        return;
+    }
+
+    isPlayingVideo = true;
+
     let source = document.createElement('source');
     source.src = src;
     source.type = 'video/mp4';
@@ -58,13 +68,23 @@ function onVideoReceived(src) {
     video.autoplay = true;
     video.onended = function() {
         console.log('video ended');
+        isPlayingVideo = false;
         $('.main-container .online-agent .video').html('');
     };
     video.addEventListener('error', function(event) {
         console.log('video error', event);
+        isPlayingVideo = false;
         $('.main-container .online-agent .video').html('');
     }, true);
 
     video.appendChild(source);
-    $('.main-container .online-agent .video').html(video);
+    $('.main-container .online-agent .video').html(video, function () {
+        video.play().then(r => {
+            console.log('video played');
+        }).catch(e => {
+            console.log('video error', e);
+            isPlayingVideo = false;
+            $('.main-container .online-agent .video').html('');
+        });
+    });
 }

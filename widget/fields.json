@@ -32,5 +32,55 @@
     "type": "video-input",
     "label": "Triggered when you kill 2/3/4 champions",
     "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/rogan_rose.mp4"
+  },
+  "PENTA_KILL": {
+    "type": "video-input",
+    "label": "Triggered when you kill 5 champions",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/kekw.mp4"
+  },
+  "PENTA_KILL_ENEMY_TEAM": {
+    "type": "video-input",
+    "label": "Triggered when enemy team player kill 5 champions",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/drama_no.mp4"
+  },
+  "DRAGON_KILL": {
+    "type": "video-input",
+    "label": "Triggered when you kill or assist a dragon kill",
+    "value": ""
+  },
+  "STOLE_DRAGON": {
+    "type": "video-input",
+    "label": "Triggered when you steal or assist a dragon steal",
+    "value": ""
+  },
+  "STOLE_DRAGON_ENEMY_TEAM": {
+    "type": "video-input",
+    "label": "Triggered when enemy team steal the dragon from your team",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/no_office.mp4"
+  },
+  "BARON_KILL": {
+    "type": "video-input",
+    "label": "Triggered when you kill or assist the baron kill",
+    "value": ""
+  },
+  "STOLE_BARON": {
+    "type": "video-input",
+    "label": "Triggered when you steal or assist a baron steal",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/kekw.mp4"
+  },
+  "STOLE_BARON_ENEMY_TEAM": {
+    "type": "video-input",
+    "label": "Triggered when enemy team steal the baron from your team",
+    "value": "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/help_goat.m4v"
+  },
+  "ACE_MY_TEAM": {
+    "type": "video-input",
+    "label": "Triggered when your team gets an Ace",
+    "value": ""
+  },
+  "ACE_ENEMY_TEAM": {
+    "type": "video-input",
+    "label": "Triggered when enemy team gets an Ace",
+    "value": ""
   }
 }
