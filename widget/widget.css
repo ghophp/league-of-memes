@@ -1,6 +1,6 @@
 * {
     font-family: '{{fontName}}', sans-serif;
-    color: {{fontColor}};
+    color: #ffffff;
     font-size: {{fontSize}}px;
     font-weight: {{fontWeight}};
     overflow: hidden;
@@ -15,8 +15,9 @@
     margin: 0 auto;
     font-size: 30px;
     text-align: center;
-    background-color: #cacaca;
-    padding: 12px;
+    background-color: #020923;
+    padding: 12px 24px;
+    border-radius: 10px;
 }
 
 .online-agent {
@@ -37,4 +38,5 @@
     margin: 0 auto;
     font-size: 30px;
     text-align: center;
+    color: #020923;
 }

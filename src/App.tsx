@@ -4,6 +4,7 @@ import { platform } from "os";
 /* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 import React, { useEffect, useState } from "react";
 import fs from "fs";
+import Logo from "./images/se_logo.png";
 import ConfigObs from "./images/config_obs.png";
 import Connected from "./images/connected.png";
 import appStyles from "./stylesheets/sass/app.module.sass";
@@ -45,6 +46,7 @@ const App = (): React.ReactElement => {
     }
 
     function onAuthenticated(data) {
+      console.log("Authenticated", data);
       currentSocket.emit("event:test", { type: "ping", value: "PING" });
     }
 
@@ -192,7 +194,9 @@ const App = (): React.ReactElement => {
         </div>
       </div>
 
-      <div>
+      <div style={{ paddingTop: 32, display: "block" }}>
+        <img className={appStyles.logo} src={Logo} alt="StreamElements" />
+
         {!socket && (
           <div className={appStyles.main}>
             <div>
@@ -210,7 +214,7 @@ const App = (): React.ReactElement => {
                   value={apiKey}
                   placeholder="eg. xxx99xx999x9x9x9x99x9x9xx9x99xx9x"
                   onChange={(event) => setApiKey(event.target.value)}
-                  style={{ fontSize: "1.2em" }}
+                  style={{ fontSize: "1.2em", marginTop: 10 }}
                 />
               </div>
               <button
@@ -231,18 +235,13 @@ const App = (): React.ReactElement => {
               Configure the video for each game event at the{" "}
               <b>Overlay Editor</b>.
             </p>
-            <small
-              style={{ display: "block", fontSize: "10px", marginBottom: 10 }}
-            >
-              https://streamelements.com/dashboard/overlays
-            </small>
             <button
               type="button"
               onClick={onPingWidgetClick}
               className={appStyles.regular_button}
-              style={{ marginTop: "10px" }}
+              style={{ marginTop: "20px" }}
             >
-              Test Event to Widget
+              Ping Widget
             </button>
 
             <img
@@ -267,7 +266,7 @@ const App = (): React.ReactElement => {
               type="button"
               onClick={onResetOverlayTokenClick}
               className={appStyles.small_button}
-              style={{ marginTop: "10px" }}
+              style={{ marginTop: "10px", textDecoration: "underline" }}
             >
               Reset Overlay Token
             </button>

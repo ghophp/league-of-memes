@@ -1,13 +1,4 @@
 {
-  "hasDownloadedAgent": {
-    "type": "dropdown",
-    "label": "Have you downloaded the agent?",
-    "value": "yes",
-    "options": {
-      "yes": "Yes",
-      "no": "No"
-    }
-  },
   "READY_TO_RUMBLE": {
     "type": "video-input",
     "label": "Triggered when the game starts",

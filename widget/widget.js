@@ -1,10 +1,10 @@
 let channel = null;
-let hasDownloadedAgent = false;
 let agentIsOnline = false;
 let waitingGame = true;
 let fieldData = {};
 let isPlayingVideo = false;
 
+const pingVideo = "https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4";
 const logSuffix = '[League of Memes]';
 
 window.addEventListener('onEventReceived', function (obj) {
@@ -19,7 +19,7 @@ window.addEventListener('onEventReceived', function (obj) {
         }
         if (currentEvent && currentEvent.type === 'test_event') {
             agentIsOnline = true;
-            onVideoReceived("https://league-of-memes.s3.eu-central-1.amazonaws.com/videos/chuck_approves.mp4");
+            onVideoReceived(pingVideo);
         }
         if (currentEvent && currentEvent.type === 'new_game') {
             waitingGame = false;
@@ -37,17 +37,13 @@ window.addEventListener('onEventReceived', function (obj) {
 
 window.addEventListener('onWidgetLoad', function (obj) {
     console.log(logSuffix, 'has Started!', obj);
-
     fieldData = obj.detail.fieldData;
-    hasDownloadedAgent = fieldData.hasDownloadedAgent === 'yes';
-
     updateView();
 });
 
 function updateView() {
     $('.main-container .offline-agent').toggle(!agentIsOnline);
     $('.main-container .online-agent').toggle(agentIsOnline);
-    $('.main-container .download-agent').toggle(hasDownloadedAgent);
     $('.main-container .waiting-game').toggle(waitingGame);
 }
 
@@ -65,7 +61,7 @@ function onVideoReceived(src) {
     let video = document.createElement("video");
     video.style.width = "100%";
     video.style.height = "100%";
-    video.autoplay = true;
+    video.autoplay = false;
     video.onended = function() {
         console.log('video ended');
         isPlayingVideo = false;
@@ -78,7 +74,10 @@ function onVideoReceived(src) {
     }, true);
 
     video.appendChild(source);
-    $('.main-container .online-agent .video').html(video, function () {
+    $('.main-container .online-agent .video').html(video);
+
+    setTimeout(function () {
+        console.log('will play the video');
         video.play().then(r => {
             console.log('video played');
         }).catch(e => {
@@ -86,5 +85,5 @@ function onVideoReceived(src) {
             isPlayingVideo = false;
             $('.main-container .online-agent .video').html('');
         });
-    });
+    }, 500);
 }

@@ -38,6 +38,7 @@
     "max-len": ["error", { "code": 120 }],
     "no-async-promise-executor": "off",
     "linebreak-style": "off",
+    "no-alert": "off",
     "prettier/prettier": [
       "error",
       {
