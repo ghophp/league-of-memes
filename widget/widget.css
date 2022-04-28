@@ -35,8 +35,10 @@
 .waiting-game {
     display: block;
     width: 400px;
-    margin: 0 auto;
+    margin: 0 auto 10px auto;
     font-size: 30px;
     text-align: center;
-    color: #020923;
+    background-color: #020923;
+    padding: 12px 24px;
+    border-radius: 10px;
 }
